@@ -166,7 +166,7 @@ def processData(df, shape_files):
     temp_df["hour_category"] = np.select(conditions, category)
 
     group = temp_df.groupby(["uid", "trip_id"])
-    temp_df["trip_group"] = group.grouper.group_info[0]
+    temp_df["trip_group"] = group.ngroup()
     temp_df.sort_values(by=["trip_group"], ascending=True, inplace=True)
 
     ###########################################################################################
@@ -511,8 +511,8 @@ if __name__ == "__main__":
 
     print(f"{datetime.now()}: Starting Process...")
     city = "Glasgow"
-    years = [2020, 2021, 2022, 2022, 2023]
-    CORES = 8
+    years = [2022, 2023]
+    CORES = 5
     print(f"{datetime.now()}: Reading this Bus Stops Shape File")
     bus_stops_shape_file = "D:/Mobile Device Data/TMD_repo/travel_mode_detection/bus_stops/bus_stops_shape_file/output.shp"
     bus_stops = gpd.GeoDataFrame.from_file(bus_stops_shape_file)
