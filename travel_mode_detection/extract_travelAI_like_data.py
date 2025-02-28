@@ -511,7 +511,7 @@ if __name__ == "__main__":
 
     print(f"{datetime.now()}: Starting Process...")
     city = "Glasgow"
-    years = [2020, 2021, 2022, 2022]
+    years = [2020, 2021, 2022, 2022, 2023]
     CORES = 8
     print(f"{datetime.now()}: Reading this Bus Stops Shape File")
     bus_stops_shape_file = "D:/Mobile Device Data/TMD_repo/travel_mode_detection/bus_stops/bus_stops_shape_file/output.shp"
@@ -546,9 +546,9 @@ if __name__ == "__main__":
         """
         )
         print(f"{datetime.now()}: Reading raw data")
-        raw_df = readRawData(2019, "Glasgow")
+        raw_df = readRawData(year, "Glasgow")
         print(f"{datetime.now()}: Reading trip & na-flows data")
-        trip_df = readTripData(2019, "Glasgow")
+        trip_df = readTripData(year, "Glasgow")
         print(f"{datetime.now()}: Merging raw data with trip data to get datetime")
         trip_df = trip_df.merge(
             raw_df[["uid", "datetime", "lat", "lng"]],
