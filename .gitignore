@@ -1,2 +1,3 @@
 traveler/__pycache__
 *.pyc
+*.env
