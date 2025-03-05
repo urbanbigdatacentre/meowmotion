@@ -55,7 +55,7 @@ def readTripData(year: int, city: str) -> pd.DataFrame:
     return trip_df
 
 
-def readRawData(year: int, city: str) -> pd.DataFrame:
+def readRawData(year: int, city: str, cores: int) -> pd.DataFrame:
     """
     Description:
     Reads and compiles raw JSON data files for a given year and city by parallel processing
@@ -64,6 +64,7 @@ def readRawData(year: int, city: str) -> pd.DataFrame:
     Parameters:
     - year (int): The year of the data to be read.
     - city (str): The name of the city for which the raw data is being retrieved.
+    - cores (int): The number of CPU cores to be used for parallel processing.
 
     Returns:
     - pd.DataFrame: A DataFrame containing compiled raw data from all monthly files.
@@ -76,7 +77,7 @@ def readRawData(year: int, city: str) -> pd.DataFrame:
     root = f"U:/Operations/SCO/Faraz/huq_compiled/{city}/{year}"
     month_files = os.listdir(root)
     args = [(root, mf) for mf in month_files]
-    with Pool(6) as p:
+    with Pool(cores) as p:
         df = p.starmap(readJsonFiles, args)
     return pd.concat(df, ignore_index=True)
 
@@ -513,7 +514,7 @@ if __name__ == "__main__":
     city = "Glasgow"
     years = [2022, 2023]
     CORES = 5
-    print(f"{datetime.now()}: Reading this Bus Stops Shape File")
+    print(f"{datetime.now()}: Reading Bus Stops Shape File")
     bus_stops_shape_file = "D:/Mobile Device Data/TMD_repo/travel_mode_detection/bus_stops/bus_stops_shape_file/output.shp"
     bus_stops = gpd.GeoDataFrame.from_file(bus_stops_shape_file)
     bus_stops.sindex
@@ -546,7 +547,7 @@ if __name__ == "__main__":
         """
         )
         print(f"{datetime.now()}: Reading raw data")
-        raw_df = readRawData(year, "Glasgow")
+        raw_df = readRawData(year, "Glasgow", CORES)
         print(f"{datetime.now()}: Reading trip & na-flows data")
         trip_df = readTripData(year, "Glasgow")
         print(f"{datetime.now()}: Merging raw data with trip data to get datetime")
@@ -561,7 +562,7 @@ if __name__ == "__main__":
         print(f"{datetime.now()}: Converting datetime to datetime object")
         trip_df["datetime"] = pd.to_datetime(trip_df["datetime"])
         print(f"{datetime.now()}: Get Load Balanced Buckets")
-        df_collection = getLoadBalancedBuckets(trip_df, 6)
+        df_collection = getLoadBalancedBuckets(trip_df, CORES)
         del trip_df
         print(f"{datetime.now()}: Feature Engineering")
         trip_df = featureEngineering(df_collection, CORES, shape_files)
