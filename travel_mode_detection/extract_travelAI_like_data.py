@@ -3,7 +3,14 @@ import geopandas as gpd
 import ast
 import os
 import numpy as np
-from ReadJson import readJsonFiles
+
+try:
+    # If running as part of the package
+    from travel_mode_detection.ReadJson import readJsonFiles
+except ModuleNotFoundError:
+    # If running as a standalone script
+    from ReadJson import readJsonFiles
+
 from multiprocessing import Pool
 from datetime import datetime
 from haversine import haversine, Unit
