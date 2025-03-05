@@ -10,6 +10,10 @@ from haversine import haversine, Unit
 from scipy import stats
 from tqdm import tqdm
 from shapely.geometry import Point
+from dotenv import load_dotenv
+import json
+
+load_dotenv()
 
 
 def readTripData(year: int, city: str) -> pd.DataFrame:
@@ -511,9 +515,12 @@ def featureEngineering(df_collection, cores, shape_files):
 if __name__ == "__main__":
 
     print(f"{datetime.now()}: Starting Process...")
-    city = "Glasgow"
-    years = [2022, 2023]
-    CORES = 5
+    city = os.getenv("CITY")  # "Glasgow"
+    years = json.loads(os.getenv("YEARS"))  # [2022, 2023]
+    CORES = int(os.getenv("CORES"))
+    print(f"{datetime.now()}: years: {type(years)}")
+    print(f"{datetime.now()}: CORES: {CORES}")
+
     print(f"{datetime.now()}: Reading Bus Stops Shape File")
     bus_stops_shape_file = "D:/Mobile Device Data/TMD_repo/travel_mode_detection/bus_stops/bus_stops_shape_file/output.shp"
     bus_stops = gpd.GeoDataFrame.from_file(bus_stops_shape_file)
