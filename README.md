@@ -79,7 +79,7 @@ The **Random Forest** classifier was used to predict travel modes based on extra
 ### Confusion Matrix
 The confusion matrix visually represents the number of correctly and incorrectly classified trips for each transport mode.
 
-![Confusion Matrix](../figures/random_forest_cm.png)
+![Confusion Matrix](figures/random_forest_cm.png)
 
 ### Classification Performance
 
