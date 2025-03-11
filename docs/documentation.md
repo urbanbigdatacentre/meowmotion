@@ -8,17 +8,17 @@
 
 - [1. Introduction](#1-introduction)
 - [2. Methodology](#2-methodology)
-    - [1. Datasets](#1-datasets)
-    - [2. Feature Engineering](#2-feature-engineering)
-    - [4. Final Training Data (Meta Data)](#4-final-training-data-meta-data)
-    - [4. Model Training \& Validation](#4-model-training--validation)
+    - [Datasets](#datasets)
+    - [Feature Engineering](#feature-engineering)
+    - [Final Training Data (Meta Data)](#final-training-data-meta-data)
+    - [Model Training \& Validation](#model-training--validation)
 - [3. Model Performance: Random Forest Classifier](#3-model-performance-random-forest-classifier)
-    - [1. Confusion Matrix](#1-confusion-matrix)
-    - [2. Classification Performance](#2-classification-performance)
-    - [3. Overall Model Accuracy](#3-overall-model-accuracy)
+    - [Confusion Matrix](#confusion-matrix)
+    - [Classification Performance](#classification-performance)
+    - [Overall Model Accuracy](#overall-model-accuracy)
 - [4. Applying the Model](#4-applying-the-model)
 - [5. Manual Validation \& Quality Assessment](#5-manual-validation--quality-assessment)
-  - [5.1. Data Bias](#51-data-bias)
+  - [Data Bias](#data-bias)
 - [6. Summary](#6-summary)
 
 
@@ -40,7 +40,7 @@ This methodology leverages **machine learning, mobility analysis, and geospatial
 
 The travel mode detection process is based on machine learning and consists of several key steps. This methodology describes the approach taken to detect, classify, and validate travel modes using **mobile phone GPS data from Huq Industries** and **secondary travel diary data from TravelAI**.
 
-### 1. Datasets
+### Datasets
  <u>**Mobile Phone App Data from Huq Industries (Primary Data)**</u>
 
  The raw dataset used in this study comes from **Huq Industries**, which collects anonymized **GPS data from mobile phone applications**. This data includes latitude, longitude, timestamp, and other mobility-related attributes. Since raw GPS data often contains inconsistencies, noise, and missing values, several preprocessing steps were performed:
@@ -97,7 +97,7 @@ For this project, the TravelAI dataset was used to train a machine learning mode
 
 This dataset serves as the foundation for developing and evaluating **travel mode detection models**, enhancing mobility analysis and intelligent transport systems.
 
-### 2. Feature Engineering
+### Feature Engineering
 
 For both of the datasets, MPA Huq data as well as TravelAi data, several features were engineered to describe the movement patterns of each trip. These features were crucial for distinguishing between different travel modes (e.g., walking, cycling, car, train, bus).
 
@@ -112,7 +112,7 @@ For both of the datasets, MPA Huq data as well as TravelAi data, several feature
 - **Geospatial Context**:
   - **Proximity to transport hubs**: Trips starting or ending near train stations may be train journeys.
   - **Road Type Information**: Matching GPS data with OpenStreetMap (OSM) data to determine whether a trip follows pedestrian pathways, highways, or railway tracks.
-### 4. Final Training Data (Meta Data)
+### Final Training Data (Meta Data)
 
 <font size="0.5"> *Note: Attributes marked with* "*" *are the important attributes, which were used to trian Machine Learning Model* </font>
 
@@ -143,8 +143,7 @@ For both of the datasets, MPA Huq data as well as TravelAi data, several feature
 | stat_end_at_bus_stop*  | Flag variable stating if the start and/or end point of the trip are near bus stop. It contains 3 possible values: 0) none of the points were found near any bus stops, 1) one of the points  were found near any bus stops, and 2) both of the points were found near a bus stop. |
 | straightness_index*    | Value between 0 and 1, stating how straight the trip trajectory was. 1 represents the straight line trip.                                                                                                                                                                         |
 
-### 4. Model Training & Validation
-
+### Model Training & Validation
 To classify trips into different travel modes, machine learning models were trained using labeled TravelAI data. The following steps were performed:
 
 - **Data Splitting**: The dataset was split into **training (80%) and testing (20%)** sets to evaluate model performance.
@@ -162,12 +161,12 @@ To classify trips into different travel modes, machine learning models were trai
 
 The **Random Forest** classifier was used to predict travel modes based on extracted mobility and geospatial features. Below is the **confusion matrix**, which illustrates the model's performance in classifying different transport modes.
 
-### 1. Confusion Matrix
+### Confusion Matrix
 The confusion matrix visually represents the number of correctly and incorrectly classified trips for each transport mode.
 
 ![Confusion Matrix](../figures/random_forest_cm.png)
 
-### 2. Classification Performance
+### Classification Performance
 
 The table below summarizes the **Precision, Recall, and Accuracy** for each travel mode:
 
@@ -180,7 +179,7 @@ The table below summarizes the **Precision, Recall, and Accuracy** for each trav
 | **Metro**     | 87.50        | 77.78      |
 | **Train**     | 76.92        | 83.33      |
 
-### 3. Overall Model Accuracy
+### Overall Model Accuracy
 - **Accuracy:** **95.56%**
 This indicates that the model correctly classifies travel modes in **95.56%** of the cases, demonstrating strong predictive performance.
 
@@ -208,7 +207,7 @@ To ensure the reliability of the predicted travel modes, **manual validation** w
   - Misclassified trips were analyzed to identify common issues, such as misclassification of slow-moving cars as cycling.
   - Adjustments were made to improve classification rules where necessary.
 
-## 5.1. Data Bias
+## Data Bias
 
 The performance of the trained machine learning model relies heavily on the **GPS points** generated during trips. These trip points serve as the foundation for extracting important **mobility and spatial attributes**, which were used to train the model. However, the **Mobile Phone App (MPA) GPS data** sourced from **Huq Industry** is subject to several limitations, including **GPS signal availability** and **GDPR-related data restrictions**.
 
