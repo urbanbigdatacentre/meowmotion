@@ -545,7 +545,7 @@ if __name__ == "__main__":
     city = os.getenv("CITY")  # "Glasgow"
     years = json.loads(os.getenv("YEARS"))  # [2022, 2023]
     CORES = int(os.getenv("CORES"))
-    print(f"{datetime.now()}: years: {type(years)}")
+    print(f"{datetime.now()}: years: {years}")
     print(f"{datetime.now()}: CORES: {CORES}")
 
     print(f"{datetime.now()}: Reading Bus Stops Shape File")
