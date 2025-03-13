@@ -58,11 +58,31 @@ def readTripData(year: int, city: str) -> pd.DataFrame:
         f"U:/Projects/Huq/Faraz/final_OD_work_v2/{city}/{year}/na_flows"
     )
     tdf = pd.read_csv(na_flows_file_path + f"/na_flows_500m_{year}.csv")
+    tdf["org_arival_time"] = pd.to_datetime(tdf["org_arival_time"])
+    tdf["org_leaving_time"] = pd.to_datetime(tdf["org_leaving_time"])
+    tdf["dest_arival_time"] = pd.to_datetime(tdf["dest_arival_time"])
     trip_df = trip_df.merge(
-        tdf[["uid", "trip_id", "org_lat", "org_lng", "dest_lat", "dest_lng"]],
+        tdf[
+            [
+                "uid",
+                "trip_id",
+                "org_lat",
+                "org_lng",
+                "dest_lat",
+                "dest_lng",
+                "org_arival_time",
+                "org_leaving_time",
+                "dest_arival_time",
+            ]
+        ],
         on=["uid", "trip_id"],
         how="left",
     )
+    trip_df = trip_df[
+        (trip_df["dest_arival_time"] - trip_df["org_leaving_time"]).dt.total_seconds()
+        / 3600
+        <= 24
+    ]
     return trip_df
 
 
@@ -562,7 +582,7 @@ if __name__ == "__main__":
         )
         print(f"{datetime.now()}: Reading raw data")
         raw_df = readRawData(year, "Glasgow", CORES)
-        print(f"{datetime.now()}: Reading trip & na-flows data")
+        print(f"{datetime.now()}: Reading trip & NA flow data")
         trip_df = readTripData(year, "Glasgow")
         print(f"{datetime.now()}: Merging raw data with trip data to get datetime")
         trip_df = trip_df.merge(
@@ -570,11 +590,16 @@ if __name__ == "__main__":
             on=["uid", "lat", "lng"],
             how="left",
         )
+        print(f"{datetime.now()}: Converting datetime to datetime object")
+        trip_df["datetime"] = pd.to_datetime(trip_df["datetime"])
+        trip_df = trip_df[
+            trip_df["datetime"].between(
+                trip_df["org_leaving_time"], trip_df["dest_arival_time"]
+            )
+        ].reset_index(drop=True)
         assert trip_df["datetime"].isna().sum() == 0
         print(f"{datetime.now()}: Validation Done")
         del raw_df
-        print(f"{datetime.now()}: Converting datetime to datetime object")
-        trip_df["datetime"] = pd.to_datetime(trip_df["datetime"])
         print(f"{datetime.now()}: Get Load Balanced Buckets")
         df_collection = getLoadBalancedBuckets(trip_df, CORES)
         del trip_df
