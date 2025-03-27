@@ -570,8 +570,6 @@ if __name__ == "__main__":
     green_space_df.sindex
     print(f"{datetime.now()}: Finished Reading Shape Files")
 
-    exit()
-
     shape_files = [bus_stops, train_stops, metro_stops, green_space_df]
     for year in years:
         print(
