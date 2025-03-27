@@ -545,34 +545,34 @@ if __name__ == "__main__":
     city = os.getenv("CITY")  # "Glasgow"
     years = json.loads(os.getenv("YEARS"))  # [2022, 2023]
     CORES = int(os.getenv("CORES"))
-    print(f"{datetime.now()}: years: {years}")
-    print(f"{datetime.now()}: CORES: {CORES}")
+    bus_stops_shape_file = os.getenv("SHAPE_FILE_BUS")
+    train_stops_shape_file = os.getenv("SHAPE_FILE_TRAIN")
+    metro_stops_shape_file = os.getenv("SHAPE_FILE_METRO")
+    gspace_file = os.getenv("SHAPE_FILE_GREEN_SPACES")
+    output_dir = os.getenv("OUTPUT_DIR")
 
     print(f"{datetime.now()}: Reading Bus Stops Shape File")
-    bus_stops_shape_file = "D:/Mobile Device Data/TMD_repo/travel_mode_detection/bus_stops/bus_stops_shape_file/output.shp"
     bus_stops = gpd.GeoDataFrame.from_file(bus_stops_shape_file)
     bus_stops.sindex
 
     print(f"{datetime.now()}: Reading Train Stops Shape File")
-    train_stops_shape_file = "D:/Mobile Device Data/TMD_repo/travel_mode_detection/train_station_locations/train_station_locations.shp"
     train_stops = gpd.GeoDataFrame.from_file(train_stops_shape_file)
     train_stops.sindex
 
     print(f"{datetime.now()}: Reading Metro Stops Shape File")
-    metro_stops_shape_file = "D:/Mobile Device Data/TMD_repo/travel_mode_detection/metro_station_locations/metro_station_locations.shp"
     metro_stops = gpd.GeoDataFrame.from_file(metro_stops_shape_file)
     metro_stops.sindex
 
     print(f"{datetime.now()}: Reading Green Space Shape File")
-    gspace_file = "D:/Mobile Device Data/TMD_repo/Green_Space_ShapeFile/green_spaces/Glasgow_filtered.shp"
     green_space_df = gpd.GeoDataFrame.from_file(gspace_file)
     if green_space_df.crs is not None and green_space_df.crs != "EPSG:4326":
         green_space_df = green_space_df.to_crs(epsg=4326)
     green_space_df.sindex
     print(f"{datetime.now()}: Finished Reading Shape Files")
 
+    exit()
+
     shape_files = [bus_stops, train_stops, metro_stops, green_space_df]
-    # shape_files = [bus_stops, train_stops, metro_stops]
     for year in years:
         print(
             f"""
@@ -607,19 +607,15 @@ if __name__ == "__main__":
         trip_df = featureEngineering(df_collection, CORES, shape_files)
         del df_collection
         print(f"{datetime.now()}: Saving Processed Data")
-        os.makedirs(
-            f"U:/Projects/Huq/Faraz/travel_mode_detection/{city}/{year}", exist_ok=True
-        )
+        os.makedirs(f"{output_dir}/{city}/{year}", exist_ok=True)
         trip_df.to_csv(
-            f"U:/Projects/Huq/Faraz/travel_mode_detection/{city}/{year}/processed_trip_points_data.csv",
+            f"{output_dir}/{city}/{year}/processed_trip_points_data.csv",
             index=False,
         )
         print(f"{datetime.now()}: Generating Huq Stats")
         huq_stats = generateHuqStats(trip_df)
-        output_file_path = f"U:/Projects/Huq/Faraz/travel_mode_detection/{city}/{year}"
-        os.makedirs(output_file_path, exist_ok=True)
         huq_stats.to_csv(
-            f"{output_file_path}/huq_stats_df_for_ml.csv",
+            f"{output_dir}/{city}/{year}/huq_stats_df_for_ml.csv",
             index=False,
         )
 
