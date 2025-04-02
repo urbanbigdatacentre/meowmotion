@@ -17,13 +17,10 @@ from haversine import haversine, Unit
 from scipy import stats
 from tqdm import tqdm
 from shapely.geometry import Point
-from dotenv import load_dotenv
 import json
 
-load_dotenv()
 
-
-def readTripData(year: int, city: str) -> pd.DataFrame:
+def readTripData(year: int, city: str, data_dir) -> pd.DataFrame:
     """
     Description:
     Reads trip data for a given year and city, processes
@@ -45,8 +42,8 @@ def readTripData(year: int, city: str) -> pd.DataFrame:
     >>> print(df.head())
     """
 
-    trip_file_path = f"U:/Projects/Huq/Faraz/final_OD_work_v2/{city}/{year}/trip_points"
-    trip_df = pd.read_csv(trip_file_path + f"/trip_points_500m_{year}.csv")
+    trip_file_path = f"{data_dir}/{city}/{year}/trip_points"
+    trip_df = pd.read_csv(f"{trip_file_path}/trip_points_500m_{year}.csv")
     trip_df["trip_points"] = trip_df["trip_points"].apply(ast.literal_eval)
     trip_df = trip_df.explode("trip_points")
     trip_df.dropna(subset=["trip_points"], inplace=True)
@@ -54,9 +51,7 @@ def readTripData(year: int, city: str) -> pd.DataFrame:
         trip_df["trip_points"].tolist(), index=trip_df.index
     )
     trip_df.drop(columns=["trip_points"], inplace=True)
-    na_flows_file_path = (
-        f"U:/Projects/Huq/Faraz/final_OD_work_v2/{city}/{year}/na_flows"
-    )
+    na_flows_file_path = f"{data_dir}/{city}/{year}/na_flows"
     tdf = pd.read_csv(na_flows_file_path + f"/na_flows_500m_{year}.csv")
     tdf["org_arival_time"] = pd.to_datetime(tdf["org_arival_time"])
     tdf["org_leaving_time"] = pd.to_datetime(tdf["org_leaving_time"])
@@ -86,26 +81,26 @@ def readTripData(year: int, city: str) -> pd.DataFrame:
     return trip_df
 
 
-def readRawData(year: int, city: str, cores: int) -> pd.DataFrame:
+def readRawData(data_dir: str, cores: int) -> pd.DataFrame:
     """
     Description:
     Reads and compiles raw JSON data files for a given year and city by parallel processing
     multiple monthly files.
 
     Parameters:
-    - year (int): The year of the data to be read.
-    - city (str): The name of the city for which the raw data is being retrieved.
     - cores (int): The number of CPU cores to be used for parallel processing.
+    - data_dir (str): The directory where the raw data files are stored.
 
     Returns:
     - pd.DataFrame: A DataFrame containing compiled raw data from all monthly files.
 
     Example:
-    >>> df = readRawData(2023, "London")
+    >>> df = readRawData(2023, "path_to_root/city/year")
     >>> print(df.head())
     """
 
-    root = f"U:/Operations/SCO/Faraz/huq_compiled/{city}/{year}"
+    # root = f"U:/Operations/SCO/Faraz/huq_compiled/{city}/{year}"
+    root = data_dir
     month_files = os.listdir(root)
     args = [(root, mf) for mf in month_files]
     with Pool(cores) as p:
@@ -578,10 +573,13 @@ if __name__ == "__main__":
         Year: {year}
         """
         )
+        raw_data_dir = f"{os.getenv('RAW_DATA_DIR')}/{city}/{year}"
+        trip_data_dir = f"{os.getenv('TRIP_DATA_DIR')}/{city}/{year}"
         print(f"{datetime.now()}: Reading raw data")
-        raw_df = readRawData(year, "Glasgow", CORES)
+        raw_df = readRawData(raw_data_dir, CORES)
         print(f"{datetime.now()}: Reading trip & NA flow data")
-        trip_df = readTripData(year, "Glasgow")
+        trip_df = readTripData(year, city, trip_data_dir)
+        exit()
         print(f"{datetime.now()}: Merging raw data with trip data to get datetime")
         trip_df = trip_df.merge(
             raw_df[["uid", "datetime", "lat", "lng"]],
