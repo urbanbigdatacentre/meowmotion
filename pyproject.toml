@@ -2,8 +2,9 @@
 name = "travel-mode-detection"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Faraz M. Awan (faraz.awan0406@gmail.com)"]
 readme = "README.md"
+license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.11"
