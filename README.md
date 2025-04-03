@@ -1,9 +1,9 @@
 <p align="center">
-    <span style="font-size: 48px; font-weight: bold;">
-    Travel Mode Detection
+    <img src="assets/meowmotion_logo.png" alt="MeowMotion Logo" width="300"/> <span style="font-size: 48px; font-weight: bold;">
+    MeowMotion: Detecting Trips and Transport Mode from GPS Data
     </span>
     <br>
-    <span style="font-size: 18px"> <strong> Prepared by: </strong>  Dr. Faraz M. Awan </span>
+    <span style="font-size: 18px"> <strong> Developer & Author: </strong>  Dr. Faraz M. Awan </span>
 </p>
 
 # Introduction

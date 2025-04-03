@@ -6,7 +6,7 @@ import numpy as np
 
 try:
     # If running as part of the package
-    from travel_mode_detection.ReadJson import readJsonFiles
+    from meowmotion.ReadJson import readJsonFiles
 except ModuleNotFoundError:
     # If running as a standalone script
     from ReadJson import readJsonFiles
@@ -238,8 +238,26 @@ def removeOutlier(group):
     return group
 
 
-def calculateBearing(lat1, lon1, lat2, lon2):
-    """Calculates the bearing between two GPS coordinates."""
+def calculateBearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Description:
+        Calculates the initial bearing (or forward azimuth) between two geographical coordinates.
+        This is the angle between the north direction and the line connecting the start point to the end point.
+        The result is normalized to a value between 0 and 360 degrees.
+
+    Parameters:
+        lat1 (float): Latitude of the starting point in decimal degrees.
+        lon1 (float): Longitude of the starting point in decimal degrees.
+        lat2 (float): Latitude of the ending point in decimal degrees.
+        lon2 (float): Longitude of the ending point in decimal degrees.
+
+    Returns:
+        float: Initial bearing from the starting point to the ending point in degrees.
+
+    Example:
+        >>> calculateBearing(12.9716, 77.5946, 13.0827, 80.2707)
+        76.123456789
+    """
 
     lon1, lat1, lon2, lat2 = map(np.deg2rad, [lon1, lat1, lon2, lat2])
     dlon = lon2 - lon1
@@ -364,7 +382,6 @@ def checkIfAtGrrenSpace(df, sdf):
         intersections = sdf.sindex.intersection(coord_point.bounds)
         for index in intersections:
             polygon = sdf.loc[index, "geometry"]
-            # Check for intersection
             if coord_point.intersects(polygon):
                 point_found_at_gs = True
                 break

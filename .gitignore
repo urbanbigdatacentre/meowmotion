@@ -1,3 +1,4 @@
-traveler/__pycache__
+__pycache__
+travel_mode_detection/__pycache__
 *.pyc
 *.env

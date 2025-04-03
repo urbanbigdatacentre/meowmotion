@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 import json
-from travel_mode_detection.extract_travelAI_like_data import (
+from meowmotion.extract_travelAI_like_data import (
     readRawData,
     readTripData,
     getLoadBalancedBuckets,
@@ -81,7 +81,6 @@ if __name__ == "__main__":
         print(f"{datetime.now()}: Feature Engineering")
         trip_df = featureEngineering(df_collection, CORES, shape_files)
         del df_collection
-        exit()
         print(f"{datetime.now()}: Saving Processed Data")
         os.makedirs(f"{output_dir}/{city}/{year}", exist_ok=True)
         trip_df.to_csv(
