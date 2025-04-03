@@ -2,7 +2,7 @@
   <img src="assets/meowmotion_logo.png" alt="MeowMotion Logo" width="200"/>
 </p>
 
-<p align="center" style="margin-top: -20px; font-size: 32px; font-weight: bold;">
+<p align="center" style="margin-top: -70px; font-size: 40px; font-weight: bold;">
   MeowMotion
 </p>
 
