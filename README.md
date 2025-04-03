@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="assets/meowmotion_logo.png" alt="MeowMotion Logo" width="200"/><br/>
-  <b><span style="font-size: 40px;">MeowMotion</span></b><br><br>
+  <img src="assets/meowmotion_logo.png" alt="MeowMotion Logo" width="200"/><br>
+  <b><span style="font-size: 50px;">MeowMotion</span></b><br><br>
   <strong>Detecting Trips and Transport Mode from GPS Data</strong><br>
   <em>Developer & Author: Dr. Faraz M. Awan</em>
 </p>
