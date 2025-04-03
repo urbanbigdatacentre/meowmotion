@@ -1,20 +1,12 @@
-<table border="0" align="center">
-  <tr>
-    <td style="vertical-align: middle; padding-right: 20px;">
-      <img src="assets/meowmotion_logo.png" alt="MeowMotion Logo" width="150">
-    </td>
-    <td style="vertical-align: middle;">
-      <div style="font-size: 22px; font-weight: bold;">
-        MeowMotion: Detecting Trips and Transport Mode from GPS Data
-      </div>
-      <div style="font-size: 16px; margin-top: 8px;">
-        <strong>Developer & Author:</strong> Dr. Faraz M. Awan
-      </div>
-    </td>
-  </tr>
-</table>
-
-
+<p align="center">
+  <img src="assets/meowmotion_logo.png" alt="MeowMotion Logo" width="120" align="left" />
+  <span style="font-size: 22px; font-weight: bold;">
+    MeowMotion: Detecting Trips and Transport Mode from GPS Data
+  </span><br/>
+  <span style="font-size: 16px;">
+    <strong>Developer & Author:</strong> Dr. Faraz M. Awan
+  </span>
+</p>
 
 
 # Introduction
