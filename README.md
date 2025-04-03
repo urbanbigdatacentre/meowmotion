@@ -3,15 +3,16 @@
   <img src="assets/meowmotion_logo.png" alt="MeowMotion Logo" width="150"/>
 
   <div style="max-width: 300px; text-align: left;">
-    <div style="font-size: 24px; font-weight: bold;">
+    <div style="font-size: 24px; font-weight: 800; line-height: 1.4;">
       MeowMotion: Detecting Trips and Transport Mode from GPS Data
     </div>
-    <div style="font-size: 16px; margin-top: 8px;">
+    <div style="font-size: 16px; margin-top: 10px;">
       <strong>Developer & Author:</strong> Dr. Faraz M. Awan
     </div>
   </div>
 
 </div>
+
 
 
 # Introduction
