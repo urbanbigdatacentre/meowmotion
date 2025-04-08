@@ -3,14 +3,7 @@ import geopandas as gpd
 import ast
 import os
 import numpy as np
-
-try:
-    # If running as part of the package
-    from meowmotion.ReadJson import readJsonFiles
-except ModuleNotFoundError:
-    # If running as a standalone script
-    from ReadJson import readJsonFiles
-
+from meowmotion.ReadJson import readJsonFiles
 from multiprocessing import Pool
 from datetime import datetime
 from haversine import haversine, Unit
