@@ -3,7 +3,7 @@ import geopandas as gpd
 import ast
 import os
 import numpy as np
-from meowmotion.ReadJson import readJsonFiles
+from meowmotion.process_data import getLoadBalancedBuckets, readJsonFiles
 from multiprocessing import Pool
 from datetime import datetime
 from haversine import haversine, Unit
@@ -260,69 +260,6 @@ def calculateBearing(lat1: float, lon1: float, lat2: float, lon2: float) -> floa
     bearing = np.rad2deg(bearing)
     bearing = (bearing + 360) % 360
     return bearing
-
-
-def getLoadBalancedBuckets(tdf: pd.DataFrame, bucket_size: int) -> list:
-    """
-    Description:
-        Multiprocessing is being used for processing the data for Stop node detection and flow generation.
-        This Funcition devides the data based on the UID and Number of Impressions in a way that load on
-        every processor core being used is well-balanced.
-
-    Parameters:
-        tdf (pd.DataFrame): Trajectory DataFrame containing the data to be processed.
-        bucket_size (int): Number of CPU Cores to be used for processing the data.
-
-    Returns:
-        list: List of Trajectory DataFrames. Each DataFrame will be processed in a seperate core as a seperate process.
-
-    Example:
-        >>> getLoadBalancedBuckets(tdf,bucket_size=8)
-        [df1,df2,df3,df4,df5,df6,df7,df8]
-    """
-
-    print(f"{datetime.now()}: Getting unique users")
-    unique_users = tdf["uid"].unique()  # Getting Unique Users in the data
-    print(f"{datetime.now()}: Number of unique users: {len(unique_users)}")
-    print(f"{datetime.now()}: Creating sets")
-    num_impr_df = (
-        pd.DataFrame(tdf.groupby("uid").size(), columns=["num_impressions"])
-        .reset_index()
-        .sort_values(by=["num_impressions"], ascending=False)
-    )  # Creating a DataFrame containing Unique UID and Total number of impressions that Unique UID has in the data.
-    buckets = (
-        {}
-    )  # A dictionary containing buckets of UIDs. Each bucket represent the CPU core. This dictionary tells how many users' data will be process on which core. For example, if bucket 1 contains 10 UIDs, data of those 10 UIDs will be processed on the core 1.
-    bucket_sums = {}  # A flag dictionary to keep the track of load on each bucket.
-
-    for i in range(1, bucket_size + 1):
-        buckets[i] = []  # Initializing empty buckets
-        bucket_sums[i] = 0  # Load in each bucket is zero initially
-
-    # Allocate users to buckets
-    for _, row in num_impr_df.iterrows():
-        user, impressions = (
-            row["uid"],
-            row["num_impressions"],
-        )  # Getting the UID and the number of impressions of that UID
-        # Find the bucket with the minimum sum of impressions
-        min_bucket = min(
-            bucket_sums, key=bucket_sums.get
-        )  # Getting the bucket with the minimum load. Initially, all the buckets have zero load.
-        # Add user to this bucket
-        buckets[min_bucket].append(user)  # Adding UID to the minimum bucket
-        # Update the sum of impressions for this bucket
-        bucket_sums[
-            min_bucket
-        ] += impressions  # Updating the load value of the bucket. For example, UID 1 was added to Bucket 1 and UID 1 had 1000 impressions (records). So, load of bucket 1 is 1000 now.
-
-    print(f"{datetime.now()}: Creating seperate dataframes")
-    tdf_collection = (
-        []
-    )  # List of collection of DataFrames. This list will contain the number of DataFrames=number of CPU Cores. Each DataFrame will be processed in a seperate core as a seperate process.
-    for i in range(1, bucket_size + 1):
-        tdf_collection.append(tdf[tdf["uid"].isin(buckets[i])].copy())
-    return tdf_collection
 
 
 def checkIfNearStop(df, sdf):
