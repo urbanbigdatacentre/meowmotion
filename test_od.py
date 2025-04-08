@@ -2,19 +2,27 @@ import pandas as pd
 from datetime import datetime
 import os
 from multiprocessing import Pool
-from meowmotion.ReadJson import readJsonFiles
-from meowmotion.data_formatter import getLoadBalancedBuckets
+from meowmotion.process_data import (
+    getLoadBalancedBuckets,
+    getFilteredData,
+    readJsonFiles,
+    getStopNodes,
+    saveFile,
+)
 from skmob import TrajDataFrame
 
 
 if __name__ == "__main__":
 
-    CITY = "Glasgow"
-    YEAR = 2019
-    root = f"U:/Operations/SCO/Faraz/huq_compiled/{CITY}/{YEAR}"
+    city = "Glasgow"
+    year = 2019
+    root = f"U:/Operations/SCO/Faraz/huq_compiled/{city}/{year}"
     cpu_cores = 12
     impr_acc = 100
     month = 1
+    radius = 500
+    time_th = 5  # in minutes
+    output_dir = "U:/Projects/Huq/Faraz/package_testing"
 
     start_time = datetime.now()
     ##################################################################################
@@ -46,3 +54,59 @@ if __name__ == "__main__":
     tdf_collection = getLoadBalancedBuckets(
         traj_df, cpu_cores
     )  # Dividing the data into buckets for multiprocessing
+
+    ##################################################################################
+    #                                                                                #
+    #                           Filtering Data Based on                              #
+    #              Impression Accuracy and Speed Between GPS Points                  #
+    #                                                                                #
+    ##################################################################################
+
+    print(f"{datetime.now()}: Filtering Started")
+    args = [(tdf, impr_acc) for tdf in tdf_collection]
+    with Pool(cpu_cores) as pool:
+        results = pool.starmap(
+            getFilteredData, args
+        )  # Filtering the data based on Impression Accuracy and Speed between GPS points
+
+    del tdf_collection  # Deleting the data to free up the memory
+    # result1, result2, result3, result4,result5, result6, result7, result8 = results
+    # traj_df=pd.concat([result1,result2,result3,result4,result5,result6,result7,result8])
+    traj_df = pd.concat(
+        [*results]
+    )  # Concatinating the filtered data from all the processes
+    del results  # Deleting the results to free up the memory
+    print(f"{datetime.now()}: Filtering Finished\n\n\n")
+
+    ##################################################################################
+    #                                                                                #
+    #                           Stope Node Detection                                 #
+    #                                                                                #
+    ##################################################################################
+
+    print(f"{datetime.now()}: Stop Node Detection Started\n\n")
+    print(
+        f"Detecting stop nodes for the month: {traj_df.datetime.dt.month.unique().tolist()}"
+    )
+    print(
+        f"Radius: {radius}\nTime Threshold: {time_th}\nImpression Accuracy: {impr_acc}"
+    )
+    tdf_collection = getLoadBalancedBuckets(traj_df, cpu_cores)
+    print(f"{datetime.now()}: Stop Node Detection Started")
+    args = [(tdf, time_th, radius) for tdf in tdf_collection]
+    with Pool(cpu_cores) as pool:
+        results = pool.starmap(getStopNodes, args)
+
+    del tdf_collection  # Deleting the data to free up the memory
+    stdf = pd.DataFrame(
+        pd.concat([*results])
+    )  # Concatinating the stop nodes from all the processes
+    del results  # Deleting the results to free up the memory
+    print(f"{datetime.now()} Stop Node Detection Completed\n")
+
+    # Saving Stop Nodes
+    saveFile(
+        path=f"{output_dir}/{city}/{year}/stop_nodes",
+        fname=f"huq_stop_nodes_{city}_{year}_{month}_{radius}m_{time_th}min_{impr_acc}m.csv",
+        df=stdf,
+    )
