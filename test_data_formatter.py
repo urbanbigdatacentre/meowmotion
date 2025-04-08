@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 import json
-from meowmotion.extract_travelAI_like_data import (
+from meowmotion.data_formatter import (
     readRawData,
     readTripData,
     getLoadBalancedBuckets,
@@ -27,19 +27,19 @@ if __name__ == "__main__":
     output_dir = os.getenv("OUTPUT_DIR")
 
     print(f"{datetime.now()}: Reading Bus Stops Shape File")
-    bus_stops = gpd.GeoDataFrame.from_file(bus_stops_shape_file)
+    bus_stops = gpd.read_file(bus_stops_shape_file)
     bus_stops.sindex
 
     print(f"{datetime.now()}: Reading Train Stops Shape File")
-    train_stops = gpd.GeoDataFrame.from_file(train_stops_shape_file)
+    train_stops = gpd.read_file(train_stops_shape_file)
     train_stops.sindex
 
     print(f"{datetime.now()}: Reading Metro Stops Shape File")
-    metro_stops = gpd.GeoDataFrame.from_file(metro_stops_shape_file)
+    metro_stops = gpd.read_file(metro_stops_shape_file)
     metro_stops.sindex
 
     print(f"{datetime.now()}: Reading Green Space Shape File")
-    green_space_df = gpd.GeoDataFrame.from_file(gspace_file)
+    green_space_df = gpd.read_file(gspace_file)
     if green_space_df.crs is not None and green_space_df.crs != "EPSG:4326":
         green_space_df = green_space_df.to_crs(epsg=4326)
     green_space_df.sindex
