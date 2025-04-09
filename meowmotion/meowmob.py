@@ -6,7 +6,26 @@ from skmob.preprocessing import detection
 from tqdm import tqdm
 
 
-def getStopNodes(tdf, time_th, radius):
+def getStopNodes(tdf: TrajDataFrame, time_th: int, radius: int) -> pd.DataFrame:
+    """
+    Description:
+        This function takes a TrajDataFrame and returns the stop nodes data. The stop nodes data contains the following columns:
+        uid, org_lat, org_lng, org_arival_time, org_leaving_time, dest_lat, dest_lng, dest_arival_time.
+        This function uses the stay_locations function from the skmob library to detect the stop nodes.
+
+    parameters:
+        tdf (TrajDataFrame): TrajDataFrame containing the trajectory data.
+        time_th (int): Time threshold in minutes.
+        radius (int): Radius in meters.
+
+    Returns:
+        pd.DataFrame: Stop nodes data.
+
+    Example:
+
+        >>> getStopNodes(tdf, time_th, radius)
+    """
+
     return detection.stay_locations(
         tdf,
         minutes_for_a_stop=time_th,
