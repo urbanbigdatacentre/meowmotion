@@ -1,19 +1,22 @@
-import pandas as pd
-import geopandas as gpd
 import ast
-import os
-import numpy as np
-from meowmotion.process_data import getLoadBalancedBuckets, readJsonFiles
-from multiprocessing import Pool
-from datetime import datetime
-from haversine import haversine, Unit
-from scipy import stats
-from tqdm import tqdm
-from shapely.geometry import Point
 import json
+import os
+from datetime import datetime
+from multiprocessing import Pool, cpu_count
+from typing import List
+
+import geopandas as gpd
+import numpy as np
+import pandas as pd
+from haversine import Unit, haversine
+from scipy import stats
+from shapely.geometry import Point
+from tqdm import tqdm
+
+from meowmotion.process_data import getLoadBalancedBuckets, readJsonFiles
 
 
-def readTripData(year: int, city: str, data_dir) -> pd.DataFrame:
+def readTripData(year: int, city: str, data_dir: str) -> pd.DataFrame:
     """
     Description:
     Reads trip data for a given year and city, processes
@@ -36,6 +39,8 @@ def readTripData(year: int, city: str, data_dir) -> pd.DataFrame:
     """
 
     trip_file_path = f"{data_dir}/{city}/{year}/trip_points"
+    print(trip_file_path)
+    print("\n\n\n")
     trip_df = pd.read_csv(f"{trip_file_path}/trip_points_500m_{year}.csv")
     trip_df["trip_points"] = trip_df["trip_points"].apply(ast.literal_eval)
     trip_df = trip_df.explode("trip_points")
@@ -74,7 +79,7 @@ def readTripData(year: int, city: str, data_dir) -> pd.DataFrame:
     return trip_df
 
 
-def readRawData(data_dir: str, cores: int) -> pd.DataFrame:
+def readRawData(data_dir: str, cores: int = max(1, cpu_count() // 2)) -> pd.DataFrame:
     """
     Description:
     Reads and compiles raw JSON data files for a given year and city by parallel processing
@@ -91,8 +96,6 @@ def readRawData(data_dir: str, cores: int) -> pd.DataFrame:
     >>> df = readRawData(2023, "path_to_root/city/year")
     >>> print(df.head())
     """
-
-    # root = f"U:/Operations/SCO/Faraz/huq_compiled/{city}/{year}"
     root = data_dir
     month_files = os.listdir(root)
     args = [(root, mf) for mf in month_files]
@@ -101,7 +104,27 @@ def readRawData(data_dir: str, cores: int) -> pd.DataFrame:
     return pd.concat(df, ignore_index=True)
 
 
-def processData(df, shape_files):
+def processData(df: pd.DataFrame, shape_files: List[gpd.GeoDataFrame]) -> pd.DataFrame:
+    """
+    Description:
+        Processes the trip data by calculating various features such as speed, acceleration,
+        jerk, angular deviation, and straightness index. It also checks if the trip starts or ends
+        at a bus, train, or metro stop and if it is found at a green space.
+        The function also filters out trips with less than 5 impressions and calculates the time taken
+        and distance covered for each trip.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
+        shape_files (List[gpd.GeoDataFrame]): List of GeoDataFrames containing bus, train, metro stops and green space polygons.
+
+    Returns:
+        pd.DataFrame: Processed DataFrame with additional features and filtered trips.
+
+    Example:
+        >>> processed_df = processData(df, shape_files)
+        >>> print(processed_df.head())
+    """
+
     temp_df = df.copy()
 
     # In some trips, for very same timestamp, we observed multiple datapoints. To deal with that, dropping all the duplicate timestamps and keeping the first one
@@ -217,16 +240,26 @@ def processData(df, shape_files):
     return temp_df
 
 
-def removeOutlier(group):
+def removeOutlier(group: pd.DataFrame) -> pd.DataFrame:
+    """
+    Description:
+        Removes outliers from the speed column of the DataFrame based on z-score.
+        If the z-score is greater than or equal to 3, the speed is replaced with the median speed.
+
+    parameters:
+        group (pd.DataFrame): DataFrame containing speed and speed_z_score columns.
+
+    Returns:
+        pd.DataFrame: DataFrame with outliers removed from the speed column.
+
+    example:
+        >>> print(removeOutlier(df))
+    """
 
     group_speed = group["speed"]
     group_z_score = group["speed_z_score"]
-    # group_speed_mean = np.mean(group_speed[group_z_score < 3])
     group_median_speed = np.median(group_speed)
-
-    # group_median_speed=np.median(group_speed[np.isfinite(group_speed)])
     group_speed[group_z_score >= 3] = group_median_speed
-    # group_speed=group_speed.replace([np.inf,-np.inf],group_median_speed)
     group["speed"] = group_speed
     return group
 
@@ -262,7 +295,22 @@ def calculateBearing(lat1: float, lon1: float, lat2: float, lon2: float) -> floa
     return bearing
 
 
-def checkIfNearStop(df, sdf):
+def checkIfNearStop(df: pd.DataFrame, sdf: gpd.GeoDataFrame) -> List[int]:
+    """
+    Description:
+        Checks if the first and last points of a trip are within a bus stop area.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
+        sdf (gpd.GeoDataFrame): GeoDataFrame containing bus stop polygons.
+
+    Returns:
+        List[int]: A list of integers indicating whether the first and/or last points are within a bus stop area.
+
+    Example:
+        >>> checkIfNearStop(df, sdf)
+        [1]
+    """
     total_points = df.shape[0] - 1
     first_lat = df.iloc[0]["lat"]
     first_lon = df.iloc[0]["lng"]
@@ -302,7 +350,27 @@ def checkIfNearStop(df, sdf):
         return ar
 
 
-def checkIfAtGrrenSpace(df, sdf):
+def checkIfAtGrrenSpace(df: pd.DataFrame, sdf: gpd.GeoDataFrame) -> List[int]:
+    """
+    Description:
+        Checks if the first point of a trip is within a green space area.
+        If it is, returns 1 for all points in the trip; otherwise, returns 0.
+        Also checks if the last point of a trip is within a green space area.
+        If it is, returns 1 for all points in the trip; otherwise, returns 0.
+        If both the first and last points are within a green space area, returns 2 for all points in the trip.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
+        sdf (gpd.GeoDataFrame): GeoDataFrame containing green space polygons.
+
+    Returns:
+        List[int]: A list of integers indicating whether the first and/or last points are within a green space area.
+
+    Example:
+        >>> checkIfAtGrrenSpace(df, sdf)
+        [1]
+    """
+
     count = 0
     for i in range(df.shape[0]):
         lat = df.iloc[0]["lat"]
@@ -325,17 +393,27 @@ def checkIfAtGrrenSpace(df, sdf):
         return [0] * df.shape[0]
 
 
-def calculateStraightnessIndex(df):
+def calculateStraightnessIndex(df: pd.DataFrame) -> List[float]:
+    """
+    Description:
+        Calculates the straightness index of a trip based on the distance covered and the straight line distance.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
+
+    Returns:
+        List[float]: A list of floats representing the straightness index for each point in the trip.
+
+    Example:
+        >>> df = pd.DataFrame({"lat": [12.9716, 13.0827], "lng": [77.5946, 80.2707]})
+        >>> calculateStraightnessIndex(df)
+        [0.5]
+    """
     # Calculate the length of the actual path
     path_length = df["distance_covered"].sum()
     if path_length == 0 or np.isnan(path_length):
         return [np.nan] * df.shape[0]  # Avoid division error
     total_points = df.shape[0] - 1
-    # first_lat=df.iloc[0,4]
-    # first_lon=df.iloc[0,5]
-    # last_lat=df.iloc[total_points,4]
-    # last_lon=df.iloc[total_points,5]
-
     first_lat = df.iloc[0]["lat"]
     first_lon = df.iloc[0]["lng"]
     last_lat = df.iloc[total_points]["lat"]
@@ -351,8 +429,7 @@ def calculateStraightnessIndex(df):
     return [straightness_index] * df.shape[0]
 
 
-def generateHuqStats(df):
-
+def generateTrajStats(df: pd.DataFrame) -> pd.DataFrame:
     progress_bar = tqdm(total=25)
 
     temp_df = df.copy()
@@ -474,7 +551,11 @@ def generateHuqStats(df):
     return temp_df
 
 
-def featureEngineering(df_collection, cores, shape_files):
+def featureEngineering(
+    df_collection: List[pd.DataFrame],
+    shape_files: List[gpd.GeoDataFrame],
+    cores: int = max(1, int(cpu_count() // 2)),
+) -> pd.DataFrame:
     args = [(df, shape_files) for df in df_collection]  # Wrap each df in a tuple
     with Pool(cores) as p:
         tdf = p.starmap(processData, args)
@@ -556,7 +637,7 @@ if __name__ == "__main__":
             index=False,
         )
         print(f"{datetime.now()}: Generating Huq Stats")
-        huq_stats = generateHuqStats(trip_df)
+        huq_stats = generateTrajStats(trip_df)
         huq_stats.to_csv(
             f"{output_dir}/{city}/{year}/huq_stats_df_for_ml.csv",
             index=False,

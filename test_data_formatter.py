@@ -1,15 +1,17 @@
-import pandas as pd
-import geopandas as gpd
+import json
 import os
 from datetime import datetime
+
+import geopandas as gpd
+import pandas as pd
 from dotenv import load_dotenv
-import json
+
 from meowmotion.data_formatter import (
+    featureEngineering,
+    generateTrajStats,
+    getLoadBalancedBuckets,
     readRawData,
     readTripData,
-    getLoadBalancedBuckets,
-    featureEngineering,
-    generateHuqStats,
 )
 
 load_dotenv()
@@ -79,7 +81,7 @@ if __name__ == "__main__":
         df_collection = getLoadBalancedBuckets(trip_df, CORES)
         del trip_df
         print(f"{datetime.now()}: Feature Engineering")
-        trip_df = featureEngineering(df_collection, CORES, shape_files)
+        trip_df = featureEngineering(df_collection, shape_files, CORES)
         del df_collection
         print(f"{datetime.now()}: Saving Processed Data")
         os.makedirs(f"{output_dir}/{city}/{year}", exist_ok=True)
@@ -88,7 +90,7 @@ if __name__ == "__main__":
             index=False,
         )
         print(f"{datetime.now()}: Generating Huq Stats")
-        huq_stats = generateHuqStats(trip_df)
+        huq_stats = generateTrajStats(trip_df)
         huq_stats.to_csv(
             f"{output_dir}/{city}/{year}/huq_stats_df_for_ml.csv",
             index=False,
