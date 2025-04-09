@@ -433,6 +433,9 @@ def generateTrajStats(df: pd.DataFrame) -> pd.DataFrame:
     progress_bar = tqdm(total=25)
 
     temp_df = df.copy()
+    if "transport_mode" not in temp_df.columns:
+        temp_df["transport_mode"] = np.nan
+
     progress_bar.update(1)
     temp_df["speed_median"] = temp_df.groupby(["uid", "trip_id"])[
         "new_speed"
@@ -545,6 +548,7 @@ def generateTrajStats(df: pd.DataFrame) -> pd.DataFrame:
             "found_at_green_space",
             "is_weekend",
             "hour_category",
+            "transport_mode",
         ]
     ]
     progress_bar.update(1)
