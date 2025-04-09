@@ -7,6 +7,7 @@ from datetime import datetime
 from os.path import join
 
 import pandas as pd
+from skmob import TrajDataFrame
 from skmob.preprocessing import filtering
 
 
@@ -48,9 +49,21 @@ def readJsonFiles(root: str, month_file: str) -> pd.DataFrame:
     return df
 
 
-def getFilteredData(traj_df, impr_acc):
+def getFilteredData(traj_df: TrajDataFrame, impr_acc: int) -> TrajDataFrame:
+    """
+    Description:
+        This function filters the trajectory data based on the accuracy of impressions and speed between consecutive GPS points.
 
-    # traj_df=traj_df[traj_df['uid'].isin(user_set)]
+    Parameters:
+        traj_df (TrajDataFrame): Trajectory DataFrame containing the data to be filtered.
+        impr_acc (int): Impression accuracy threshold.
+
+    Returns:
+        TrajDataFrame: Filtered trajectory data.
+
+    Example:
+        >>> getFilteredData(traj_df, impr_acc=100)
+    """
 
     print(f"Filtering based on impression accuracy={impr_acc}")
     bf = traj_df.shape[0]
