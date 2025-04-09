@@ -7,6 +7,7 @@ from meowmotion.process_data import (
     getFilteredData,
     readJsonFiles,
     getStopNodes,
+    processFlowGenration,
     saveFile,
 )
 from skmob import TrajDataFrame
@@ -110,3 +111,43 @@ if __name__ == "__main__":
         fname=f"huq_stop_nodes_{city}_{year}_{month}_{radius}m_{time_th}min_{impr_acc}m.csv",
         df=stdf,
     )
+
+    ##################################################################################
+    #                                                                                #
+    #                           Flow Generation                                      #
+    #                                                                                #
+    ##################################################################################
+
+    stdf.rename(columns={"lat": "org_lat", "lng": "org_lng"}, inplace=True)
+    stdf["dest_at"] = stdf.groupby("uid")["datetime"].transform(lambda x: x.shift(-1))
+    stdf["dest_lat"] = stdf.groupby("uid")["org_lat"].transform(lambda x: x.shift(-1))
+    stdf["dest_lng"] = stdf.groupby("uid")["org_lng"].transform(lambda x: x.shift(-1))
+    stdf = stdf.dropna(subset=["dest_lat"])
+    tdf_collection = getLoadBalancedBuckets(stdf, cpu_cores)
+    print(f"{datetime.now()}: Generating args")
+    args = []
+    for tdf in tdf_collection:
+        temp_raw_df = traj_df[traj_df["uid"].isin(tdf["uid"].unique())].copy()
+        temp_raw_df.set_index(["uid", "datetime"], inplace=True)
+        temp_raw_df.sort_index(inplace=True)
+        args.append((tdf, temp_raw_df))
+    del tdf_collection
+    print(f"{datetime.now()}: args Generation Completed")
+    print(f"{datetime.now()}: Flow Generation Started\n\n")
+    with Pool(cpu_cores) as pool:
+        results = pool.starmap(processFlowGenration, args)
+
+    flow_df = pd.concat(
+        [*results]
+    )  # Concatinating the flow data from all the processes
+    del results  # Deleting the results to free up the memory
+    print(f"{datetime.now()} Flow Generation Completed\n")
+    # Saving Flow
+    saveFile(
+        path=f"{output_dir}\\{city}\\{year}\\trips",
+        fname=f"huq_trips_{city}_{year}_{month}_{radius}m_{time_th}min_{impr_acc}m.csv",
+        df=flow_df,
+    )
+    end_time = datetime.now()
+    print(f"{end_time}: Process Completed")
+    print(f"\n\nTotal Time Taken: {(end_time-start_time).total_seconds()/60} minutes")
