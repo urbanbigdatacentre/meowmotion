@@ -1,7 +1,7 @@
 import os
 import random
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Tuple
 
 import joblib
 import numpy as np
@@ -329,7 +329,7 @@ def trainMLModel(
     df_val: pd.DataFrame,
     model_name: str,
     output_dir: Optional[str] = None,
-) -> None:
+) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray]:
     print(f"{datetime.now()}: Training ML Model")
     ml_df = df_tr.copy()
     val_ml_df = df_val.copy()
@@ -373,9 +373,13 @@ def trainMLModel(
 
     print(f"{datetime.now()}: Training {model_name} Model")
     if model_name == "DecisionTree":
-        model = trainDecisionTree(x_train, y_train, val_x, val_y, le)
+        model, acc, prec, recall, cm = trainDecisionTree(
+            x_train, y_train, val_x, val_y, le
+        )
     elif model_name == "RandomForest":
-        model = trainRandomForest(x_train, y_train, val_x, val_y, le)
+        model, acc, prec, recall, cm = trainRandomForest(
+            x_train, y_train, val_x, val_y, le
+        )
 
     if output_dir is not None:
         print(f"{datetime.now()}: Saving Model")
@@ -383,6 +387,7 @@ def trainMLModel(
         joblib.dump(model, f"{output_dir}/artifacts/{model_name}_model.joblib")
         print(f"{datetime.now()}: Saving Label Encoder")
         joblib.dump(le, f"{output_dir}/artifacts/label_encoder.joblib")
+    return acc, prec, recall, cm
 
 
 def trainDecisionTree(
@@ -391,7 +396,7 @@ def trainDecisionTree(
     val_x: pd.DataFrame,
     val_y: np.array,
     le: LabelEncoder,
-) -> DecisionTreeClassifier:
+) -> Tuple[DecisionTreeClassifier, float, np.ndarray, np.ndarray, np.ndarray]:
     """
     Description:
         This function trains a Decision Tree Classifier using the provided training data.
@@ -423,7 +428,7 @@ def trainDecisionTree(
     cm = confusion_matrix(val_y, dt_pred, labels=dt.classes_)
     print(f"Precision:{dt_precision}\nRecall:{dt_recall}\nAcc:{dt_acc}")
     print(f"Confusion Matrix:\n{le.inverse_transform(dt.classes_)}\n{cm}")
-    return dt
+    return dt, dt_acc, dt_precision, dt_recall, cm
 
 
 def trainRandomForest(
@@ -432,7 +437,7 @@ def trainRandomForest(
     val_x: pd.DataFrame,
     val_y: np.array,
     le: LabelEncoder,
-) -> RandomForestClassifier:
+) -> Tuple[RandomForestClassifier, float, np.ndarray, np.ndarray, np.ndarray]:
     """
     Description:
         This function trains a Random Forest Classifier using the provided training data.
@@ -465,4 +470,4 @@ def trainRandomForest(
     cm = confusion_matrix(val_y, rf_pred, labels=rf.classes_)
     print(f"Precision:{rf_precision}\nRecall:{rf_recall}\nAcc:{rf_acc}")
     print(f"Confusion Matrix:\n{le.inverse_transform(rf.classes_)}\n{cm}")
-    return rf
+    return rf, rf_acc, rf_precision, rf_recall, cm
