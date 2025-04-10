@@ -5,6 +5,7 @@ repo_name: MeowMotion
 theme:
   name: material
   logo: assets/meowmotion_logo.png
+  favicon: assets/icon.png
   features:
     - navigation.expand
     - navigation.sections
