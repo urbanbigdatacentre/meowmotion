@@ -3,10 +3,12 @@ import random
 from datetime import datetime
 from typing import Optional, Tuple
 
+import geopandas as gpd
 import joblib
 import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
+from shapely.geometry import Point
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     accuracy_score,
@@ -330,6 +332,10 @@ def trainMLModel(
     model_name: str,
     output_dir: Optional[str] = None,
 ) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray]:
+    if model_name not in ["decision_tree", "random_forest"]:
+        raise ValueError(
+            "model_name should be either 'decision_tree' or 'random_forest'"
+        )
     print(f"{datetime.now()}: Training ML Model")
     ml_df = df_tr.copy()
     val_ml_df = df_val.copy()
@@ -372,11 +378,11 @@ def trainMLModel(
     print(f"{datetime.now()}: Oversampling Completed")
 
     print(f"{datetime.now()}: Training {model_name} Model")
-    if model_name == "DecisionTree":
+    if model_name == "decision_tree":
         model, acc, prec, recall, cm = trainDecisionTree(
             x_train, y_train, val_x, val_y, le
         )
-    elif model_name == "RandomForest":
+    elif model_name == "random_forest":
         model, acc, prec, recall, cm = trainRandomForest(
             x_train, y_train, val_x, val_y, le
         )
@@ -471,3 +477,192 @@ def trainRandomForest(
     print(f"Precision:{rf_precision}\nRecall:{rf_recall}\nAcc:{rf_acc}")
     print(f"Confusion Matrix:\n{le.inverse_transform(rf.classes_)}\n{cm}")
     return rf, rf_acc, rf_precision, rf_recall, cm
+
+
+def modePredict(
+    artifacts_dir: str,
+    model_file_name: str,
+    le_file_name: str,
+    processed_non_agg_data: str,
+    stats_agg_data: str,
+    shape_file: str,
+    output_dir: Optional[str] = None,
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+
+    print(f"{datetime.now()}: Loading Model and Encoder")
+    model = joblib.load(f"{artifacts_dir}/{model_file_name}")
+    class_encoder = joblib.load(f"{artifacts_dir}/{le_file_name}")
+    print(f"{datetime.now()}: Loading Shapefile")
+    gdf = gpd.read_file(shape_file)
+    gdf = gdf.to_crs(epsg=4326)
+    gdf.index
+
+    print(f"{datetime.now()}: Loading Processed Data")
+    processed_non_agg_data = pd.read_csv(processed_non_agg_data)
+    processed_non_agg_data = processed_non_agg_data[
+        [
+            "year",
+            "distance_threshold",
+            "uid",
+            "imd_quintile",
+            "trip_id",
+            "total_active_days",
+            "lat",
+            "lng",
+            "org_lat",
+            "org_lng",
+            "dest_lat",
+            "dest_lng",
+            "datetime",
+            "num_of_impressions",
+            "time_taken",
+            "prev_lat",
+            "prev_long",
+            "distance_covered",
+            "speed",
+            "date",
+            "hour",
+            "speed_z_score",
+            "new_speed",
+            "accelaration",
+            "jerk",
+            "bearing",
+            "angular_deviation",
+            "month",
+            "is_weekend",
+            "hour_category",
+            "start_end_at_bus_stop",
+            "start_end_at_train_stop",
+            "start_end_at_metro_stop",
+            "found_at_green_space",
+            "straightness_index",
+        ]
+    ]
+
+    attributes = [
+        "month",
+        "speed_median",
+        "speed_pct_95",
+        "speed_std",
+        "acceleration_median",
+        "acceleration_pct_95",
+        "acceleration_std",
+        "jerk_median",
+        "jerk_pct_95",
+        "jerk_std",
+        "angular_dev_median",
+        "angular_dev_pct_95",
+        "angular_dev_std",
+        "straightness_index",
+        "distance_covered",
+        "start_end_at_bus_stop",
+        "start_end_at_train_stop",
+        "start_end_at_metro_stop",
+        "found_at_green_space",
+        "is_weekend",
+        "hour_category",
+    ]
+
+    print(f"{datetime.now()}: Loading Stats Aggregated Data")
+    data = pd.read_csv(stats_agg_data, parse_dates=["datetime"])
+    data["month"] = data["datetime"].dt.month
+    # keep the mode of month for each uid and trip_id
+    data["month"] = data.groupby(["uid", "trip_id"])["month"].transform(
+        lambda x: x.mode()[0]
+    )  # some night trips change the month. So, we keep the mode of month for each trip
+    data = data.drop_duplicates(subset=attributes)
+
+    print(f"{datetime.now()}:Predicting Travel Mode")
+    pred = model.predict(data[attributes])
+    pred = class_encoder.inverse_transform(pred)
+    data["travel_mode"] = pred
+
+    print(f"{datetime.now()}: Merging Travel Mode with Processed Data")
+    processed_non_agg_data = processed_non_agg_data.merge(
+        data[["uid", "trip_id", "travel_mode"]], on=["uid", "trip_id"], how="left"
+    )
+    del data
+    op_df = processed_non_agg_data[
+        [
+            "uid",
+            "trip_id",
+            "org_lat",
+            "org_lng",
+            "dest_lat",
+            "dest_lng",
+            "lat",
+            "lng",
+            "datetime",
+            "travel_mode",
+        ]
+    ]
+
+    # Add origin geo code
+    print(
+        f"{datetime.now()}: Spatial Join for Origin Geo Codes (It may take a few minutes...)"
+    )
+    geometry = [Point(xy) for xy in zip(op_df["org_lng"], op_df["org_lat"])]
+    op_df = gpd.GeoDataFrame(op_df, crs="EPSG:4326", geometry=geometry)
+    op_df = op_df.sjoin(
+        gdf[["geo_code", "geometry"]], how="left", predicate="intersects"
+    )
+    op_df = op_df.rename(columns={"geo_code": "org_geo_code"})
+    op_df = op_df.drop(columns=["geometry", "index_right"])
+
+    # Add destination geo code
+    print(
+        f"{datetime.now()}: Spatial Join for Destination Geo Codes (It may take a few minutes...)"
+    )
+    geometry = [Point(xy) for xy in zip(op_df["dest_lng"], op_df["dest_lat"])]
+    op_df = gpd.GeoDataFrame(op_df, crs="EPSG:4326", geometry=geometry)
+    op_df = op_df.sjoin(
+        gdf[["geo_code", "geometry"]], how="left", predicate="intersects"
+    )
+    op_df = op_df.rename(columns={"geo_code": "dest_geo_code"})
+    op_df = op_df.drop(columns=["geometry", "index_right"])
+
+    print(
+        f"{datetime.now()}: Getting Unique Trip Number (It may take a few minutes...)"
+    )
+    op_df.loc[:, "trip_num"] = (
+        pd.factorize(op_df[["uid", "trip_id"]].apply(tuple, axis=1))[0] + 1
+    )
+    op_df = op_df.drop(columns=["uid", "trip_id"])
+    op_df = op_df[
+        [
+            "trip_num",
+            "org_geo_code",
+            "dest_geo_code",
+            "lat",
+            "lng",
+            "datetime",
+            "travel_mode",
+        ]
+    ]
+    op_df = op_df.rename(
+        columns={"trip_num": "trip_id", "lat": "tp_lat", "lng": "tp_lng"}
+    )
+    op_df = op_df.dropna(subset=["travel_mode"])
+    assert op_df["travel_mode"].isna().sum() == 0
+
+    agg_op_df = op_df.copy()
+    agg_op_df = agg_op_df.drop_duplicates(subset=["trip_id"])
+    agg_op_df = (
+        agg_op_df.groupby(["org_geo_code", "dest_geo_code", "travel_mode"])
+        .size()
+        .unstack(fill_value=0)
+        .reset_index()
+    )
+
+    if output_dir is not None:
+        print(f"{datetime.now()}: Saving Predictions")
+        os.makedirs(f"{output_dir}/predictions", exist_ok=True)
+        op_df.to_csv(
+            f"{output_dir}/predictions/predicted_travel_modes_non_agg.csv", index=False
+        )
+        agg_op_df.to_csv(
+            f"{output_dir}/predictions/predicted_travel_modes_agg.csv", index=False
+        )
+        print(f"{datetime.now()}: Predictions Saved")
+
+    return op_df, agg_op_df
