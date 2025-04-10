@@ -17,10 +17,20 @@ jobs:
       with:
         python-version: '3.10'
 
+    - name: Install GDAL system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gdal-bin libgdal-dev
+
     - name: Install Poetry
       uses: snok/install-poetry@v1
 
-    - name: Install dependencies
+    - name: Configure GDAL environment variables
+      run: |
+        echo "export CPLUS_INCLUDE_PATH=/usr/include/gdal" >> $GITHUB_ENV
+        echo "export C_INCLUDE_PATH=/usr/include/gdal" >> $GITHUB_ENV
+
+    - name: Install Python dependencies
       run: poetry install
 
     - name: Build docs
