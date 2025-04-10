@@ -1,12 +1,41 @@
+import os
 import random
 from datetime import datetime
+from typing import Optional
 
+import joblib
+import numpy as np
 import pandas as pd
+from imblearn.over_sampling import SMOTE
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    precision_recall_fscore_support,
+)
+from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeClassifier
 
 from meowmotion.data_formatter import generateTrajStats
 
 
 def processTrainingData(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Description:
+        This function processes the training data by filtering out invalid records,
+        removing outliers, and generating statistics.
+        It also splits the data into training and validation sets.
+
+    Parameters:
+        data (pd.DataFrame): The input data to be processed.
+
+    Returns:
+        stat_df (pd.DataFrame): The processed training data with statistics.
+        vald_stat_df (pd.DataFrame): The processed validation data with statistics.
+    Example:
+        stat_df, vald_stat_df = processTrainingData(data)
+    """
+
     proc_data = data.copy()
     proc_data = proc_data.loc[
         ~(
@@ -155,8 +184,6 @@ def processTrainingData(data: pd.DataFrame) -> pd.DataFrame:
         (vald_proc_data["accelaration"] >= -7) & (vald_proc_data["accelaration"] <= 7)
     ]
 
-    ###########################################################################################################################
-
     proc_data = proc_data.drop(columns=["trip_id", "leg_id"])
     proc_data = proc_data.rename(
         columns={
@@ -176,9 +203,6 @@ def processTrainingData(data: pd.DataFrame) -> pd.DataFrame:
         }
     )
     vald_proc_data["trip_id"] = vald_proc_data["trip_id"].astype("int32")
-
-    ###########################################################################################################################
-
     trip_points_df = proc_data.groupby(["uid", "trip_id", "transport_mode"])[
         ["uid"]
     ].apply(lambda x: x.count())
@@ -298,3 +322,147 @@ def processTrainingData(data: pd.DataFrame) -> pd.DataFrame:
     ]
 
     return stat_df, vald_stat_df
+
+
+def trainMLModel(
+    df_tr: pd.DataFrame,
+    df_val: pd.DataFrame,
+    model_name: str,
+    output_dir: Optional[str] = None,
+) -> None:
+    print(f"{datetime.now()}: Training ML Model")
+    ml_df = df_tr.copy()
+    val_ml_df = df_val.copy()
+    print(f"{datetime.now()}: Encoding Class Labels")
+    le = LabelEncoder()
+    ml_df["class_label"] = le.fit_transform(ml_df.transport_mode)
+    val_ml_df["class_label"] = le.fit_transform(val_ml_df.transport_mode)
+    tr_cols = [
+        "month",
+        "speed_median",
+        "speed_pct_95",
+        "speed_std",
+        "acceleration_median",
+        "acceleration_pct_95",
+        "acceleration_std",
+        "jerk_median",
+        "jerk_pct_95",
+        "jerk_std",
+        "angular_dev_median",
+        "angular_dev_pct_95",
+        "angular_dev_std",
+        "straightness_index",
+        "distance_covered",
+        "start_end_at_bus_stop",
+        "start_end_at_train_stop",
+        "start_end_at_metro_stop",
+        "found_at_green_space",
+        "is_weekend",
+        "hour_category",
+    ]
+
+    x = ml_df[tr_cols]
+    y = ml_df["class_label"].values
+    val_x = val_ml_df[tr_cols]
+    val_y = val_ml_df["class_label"].values
+
+    print(f"{datetime.now()}: Oversampling the data")
+    oversample = SMOTE()
+    x_train, y_train = oversample.fit_resample(x, y)
+    print(f"{datetime.now()}: Oversampling Completed")
+
+    print(f"{datetime.now()}: Training {model_name} Model")
+    if model_name == "DecisionTree":
+        model = trainDecisionTree(x_train, y_train, val_x, val_y, le)
+    elif model_name == "RandomForest":
+        model = trainRandomForest(x_train, y_train, val_x, val_y, le)
+
+    if output_dir is not None:
+        print(f"{datetime.now()}: Saving Model")
+        os.makedirs(f"{output_dir}/artifacts", exist_ok=True)
+        joblib.dump(model, f"{output_dir}/artifacts/{model_name}_model.joblib")
+        print(f"{datetime.now()}: Saving Label Encoder")
+        joblib.dump(le, f"{output_dir}/artifacts/label_encoder.joblib")
+
+
+def trainDecisionTree(
+    x_train: pd.DataFrame,
+    y_train: np.array,
+    val_x: pd.DataFrame,
+    val_y: np.array,
+    le: LabelEncoder,
+) -> DecisionTreeClassifier:
+    """
+    Description:
+        This function trains a Decision Tree Classifier using the provided training data.
+        It also evaluates the model on the validation data and prints the precision, recall, accuracy,
+        and confusion matrix.
+
+    Parameters:
+        x_train (pd.DataFrame): The training features.
+        y_train (np.array): The training labels.
+        val_x (pd.DataFrame): The validation features.
+        val_y (np.array): The validation labels.
+
+    Returns:
+        dt (DecisionTreeClassifier): The trained Decision Tree model.
+
+    Example:
+        dt_model = trainDecisionTree(x_train, y_train, val_x, val_y)
+    """
+    dt = DecisionTreeClassifier(random_state=0)
+    dt.fit(x_train, y_train)
+    dt_pred = dt.predict(val_x)
+    dt_precision, dt_recall, dt_fscore, _ = precision_recall_fscore_support(
+        val_y, dt_pred
+    )
+    dt_acc = accuracy_score(val_y, dt_pred)
+    dt_precision = np.round(dt_precision * 100, 2)
+    dt_recall = np.round(dt_recall * 100, 2)
+    dt_acc = np.round(dt_acc * 100, 2)
+    cm = confusion_matrix(val_y, dt_pred, labels=dt.classes_)
+    print(f"Precision:{dt_precision}\nRecall:{dt_recall}\nAcc:{dt_acc}")
+    print(f"Confusion Matrix:\n{le.inverse_transform(dt.classes_)}\n{cm}")
+    return dt
+
+
+def trainRandomForest(
+    x_train: pd.DataFrame,
+    y_train: np.array,
+    val_x: pd.DataFrame,
+    val_y: np.array,
+    le: LabelEncoder,
+) -> RandomForestClassifier:
+    """
+    Description:
+        This function trains a Random Forest Classifier using the provided training data.
+        It also evaluates the model on the validation data and prints the precision, recall, accuracy,
+        and confusion matrix.
+
+    Parameters:
+        x_train (pd.DataFrame): The training features.
+        y_train (np.array): The training labels.
+        val_x (pd.DataFrame): The validation features.
+        val_y (np.array): The validation labels.
+
+    Returns:
+        rf (RandomForestClassifier): The trained Random Forest model.
+
+    Example:
+        rf_model = trainRandomForest(x_train, y_train, val_x, val_y)
+    """
+
+    rf = RandomForestClassifier(n_estimators=200, max_depth=200, max_features=None)
+    rf.fit(x_train, y_train)
+    rf_pred = rf.predict(val_x)
+    rf_precision, rf_recall, rf_fscore, _ = precision_recall_fscore_support(
+        val_y, rf_pred
+    )
+    rf_acc = accuracy_score(val_y, rf_pred)
+    rf_precision = np.round(rf_precision * 100, 2)
+    rf_recall = np.round(rf_recall * 100, 2)
+    rf_acc = np.round(rf_acc * 100, 2)
+    cm = confusion_matrix(val_y, rf_pred, labels=rf.classes_)
+    print(f"Precision:{rf_precision}\nRecall:{rf_recall}\nAcc:{rf_acc}")
+    print(f"Confusion Matrix:\n{le.inverse_transform(rf.classes_)}\n{cm}")
+    return rf
