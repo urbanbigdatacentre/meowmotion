@@ -39,8 +39,6 @@ def readTripData(year: int, city: str, data_dir: str) -> pd.DataFrame:
     """
 
     trip_file_path = f"{data_dir}/{city}/{year}/trip_points"
-    print(trip_file_path)
-    print("\n\n\n")
     trip_df = pd.read_csv(f"{trip_file_path}/trip_points_500m_{year}.csv")
     trip_df["trip_points"] = trip_df["trip_points"].apply(ast.literal_eval)
     trip_df = trip_df.explode("trip_points")
