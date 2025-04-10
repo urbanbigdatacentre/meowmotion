@@ -1,4 +1,4 @@
-<img src="assets/meowmotion_logo.png" alt="MeowMotion Logo" width="250"/><br>
+<img src="../assets/meowmotion_logo.png" alt="MeowMotion Logo" width="250"/><br>
 
 # About
 
