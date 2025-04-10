@@ -23,19 +23,20 @@ from meowmotion.data_formatter import generateTrajStats
 
 def processTrainingData(data: pd.DataFrame) -> pd.DataFrame:
     """
-    Description:
-        This function processes the training data by filtering out invalid records,
-        removing outliers, and generating statistics.
-        It also splits the data into training and validation sets.
+    This function processes the training data by filtering out invalid records,
+    removing outliers, and generating statistics.
+    It also splits the data into training and validation sets.
 
-    Parameters:
+    Args:
         data (pd.DataFrame): The input data to be processed.
 
     Returns:
         stat_df (pd.DataFrame): The processed training data with statistics.
         vald_stat_df (pd.DataFrame): The processed validation data with statistics.
+
     Example:
-        stat_df, vald_stat_df = processTrainingData(data)
+        >>> stat_df, vald_stat_df = processTrainingData(data)
+
     """
 
     proc_data = data.copy()
@@ -404,12 +405,12 @@ def trainDecisionTree(
     le: LabelEncoder,
 ) -> Tuple[DecisionTreeClassifier, float, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Description:
-        This function trains a Decision Tree Classifier using the provided training data.
-        It also evaluates the model on the validation data and prints the precision, recall, accuracy,
-        and confusion matrix.
 
-    Parameters:
+    This function trains a Decision Tree Classifier using the provided training data.
+    It also evaluates the model on the validation data and prints the precision, recall, accuracy,
+    and confusion matrix.
+
+    Args:
         x_train (pd.DataFrame): The training features.
         y_train (np.array): The training labels.
         val_x (pd.DataFrame): The validation features.
@@ -445,12 +446,12 @@ def trainRandomForest(
     le: LabelEncoder,
 ) -> Tuple[RandomForestClassifier, float, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Description:
-        This function trains a Random Forest Classifier using the provided training data.
-        It also evaluates the model on the validation data and prints the precision, recall, accuracy,
-        and confusion matrix.
 
-    Parameters:
+    This function trains a Random Forest Classifier using the provided training data.
+    It also evaluates the model on the validation data and prints the precision, recall, accuracy,
+    and confusion matrix.
+
+    Args:
         x_train (pd.DataFrame): The training features.
         y_train (np.array): The training labels.
         val_x (pd.DataFrame): The validation features.

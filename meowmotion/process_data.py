@@ -174,7 +174,7 @@ def saveFile(path: str, fname: str, df: pd.DataFrame) -> None:
         None
 
     Example:
-        >>> saveFile('D:\\Mobile Device Data\\OD_calculation_latest_work\\HUQ_OD\\2019\\stop_nodes','huq_stop_nodes_Manchester_2019_1_500m_5min_100m.csv',stdf)
+        >>> saveFile('path\\to\\directory','stop_nodes.csv',stdf)
     """
 
     if not os.path.exists(path):

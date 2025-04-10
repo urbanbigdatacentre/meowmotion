@@ -1,0 +1,58 @@
+site_name: MeowMotion
+repo_url: https://github.com/faraz-m-awan/travel_mode_detection # update if applicable
+repo_name: MeowMotion
+theme:
+  name: material
+  logo: assets/meowmotion_logo.png
+  features:
+    - navigation.expand
+    - navigation.sections
+    - navigation.top
+    - content.code.annotate
+    - content.tabs.link
+    - search.highlight
+    - search.suggest
+  palette:
+    - scheme: default
+      primary: orange
+      accent: pink
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: lime
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quick-start.md
+  - Usage Examples: examples.md
+  - API Reference:
+      - Data Formatter: reference/data_formatter.md
+      - Meowmob: reference/meowmob.md
+      - Model TMD: reference/model_tmd.md
+      - Process Data: reference/process_data.md
+  - About: about.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.details

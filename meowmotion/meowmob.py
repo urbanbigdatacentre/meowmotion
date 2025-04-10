@@ -8,12 +8,12 @@ from tqdm import tqdm
 
 def getStopNodes(tdf: TrajDataFrame, time_th: int, radius: int) -> pd.DataFrame:
     """
-    Description:
-        This function takes a TrajDataFrame and returns the stop nodes data. The stop nodes data contains the following columns:
-        uid, org_lat, org_lng, org_arival_time, org_leaving_time, dest_lat, dest_lng, dest_arival_time.
-        This function uses the stay_locations function from the skmob library to detect the stop nodes.
 
-    parameters:
+    This function takes a TrajDataFrame and returns the stop nodes data. The stop nodes data contains the following columns:
+    uid, org_lat, org_lng, org_arival_time, org_leaving_time, dest_lat, dest_lng, dest_arival_time.
+    This function uses the stay_locations function from the skmob library to detect the stop nodes.
+
+    Args:
         tdf (TrajDataFrame): TrajDataFrame containing the trajectory data.
         time_th (int): Time threshold in minutes.
         radius (int): Radius in meters.
@@ -22,7 +22,6 @@ def getStopNodes(tdf: TrajDataFrame, time_th: int, radius: int) -> pd.DataFrame:
         pd.DataFrame: Stop nodes data.
 
     Example:
-
         >>> getStopNodes(tdf, time_th, radius)
     """
 
@@ -36,19 +35,18 @@ def getStopNodes(tdf: TrajDataFrame, time_th: int, radius: int) -> pd.DataFrame:
 
 def processFlowGenration(stdf: pd.DataFrame, raw_df: TrajDataFrame) -> pd.DataFrame:
     """
-    Description:
-        This function generates the flow data from the stop nodes data. It takes the stop nodes data and the raw data as input and returns the flow data.
-        The flow data contains the following columns:
-        uid, org_lat, org_lng, org_arival_time, org_leaving_time, dest_lat, dest_lng, dest_arival_time, stay_points, trip_points, trip_time, stay_duration, observed_stay_duration
-        The function uses the following steps to generate the flow data:
 
+    This function generates the flow data from the stop nodes data. It takes the stop nodes data and the raw data as input and returns the flow data.
+    The flow data contains the following columns:
+    uid, org_lat, org_lng, org_arival_time, org_leaving_time, dest_lat, dest_lng, dest_arival_time, stay_points, trip_points, trip_time, stay_duration, observed_stay_duration
+    The function uses the following steps to generate the flow data:
         1. It takes the stop nodes data and the raw data as input.
         2. It iterates through the stop nodes data and for each row, it fetches the data from the raw data.
         3. It appends the data to a list.
         4. It converts the list to a DataFrame.
         5. It returns the DataFrame.
 
-    Parameters:
+    Args:
         stdf (pd.DataFrame): Stop nodes data.
         raw_df (TrajDataFrame): Raw data.
 
@@ -56,8 +54,7 @@ def processFlowGenration(stdf: pd.DataFrame, raw_df: TrajDataFrame) -> pd.DataFr
         pd.DataFrame: Flow data.
 
     Example:
-
-            >>> processFlowGenration(stdf, raw_df)
+        >>> processFlowGenration(stdf, raw_df)
 
     """
 
@@ -88,12 +85,12 @@ def processFlowGenration(stdf: pd.DataFrame, raw_df: TrajDataFrame) -> pd.DataFr
 
 def fetchDataFromRaw(record: pd.Series, raw_df: TrajDataFrame) -> list:
     """
-    Description:
-        This function fetches the data from the raw data based on the stop nodes data. It takes the stop nodes data and the raw data as input and returns the flow data.
-        The flow data contains the following columns:
-        uid, org_lat, org_lng, org_arival_time, org_leaving_time, dest_lat, dest_lng, dest_arival_time, stay_points, trip_points, trip_time, stay_duration, observed_stay_duration
 
-    Parameters:
+    This function fetches the data from the raw data based on the stop nodes data. It takes the stop nodes data and the raw data as input and returns the flow data.
+    The flow data contains the following columns:
+    uid, org_lat, org_lng, org_arival_time, org_leaving_time, dest_lat, dest_lng, dest_arival_time, stay_points, trip_points, trip_time, stay_duration, observed_stay_duration
+
+    Args:
         record (pd.Series): Stop nodes data.
         raw_df (TrajDataFrame): Raw data.
 
@@ -101,8 +98,7 @@ def fetchDataFromRaw(record: pd.Series, raw_df: TrajDataFrame) -> list:
         list: Flow data.
 
     Example:
-
-            >>> fetchDataFromRaw(record, raw_df)
+        >>> fetchDataFromRaw(record, raw_df)
     """
 
     org_at = record["datetime"]  # Origin arriving time

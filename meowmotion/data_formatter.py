@@ -18,12 +18,11 @@ from meowmotion.process_data import getLoadBalancedBuckets, readJsonFiles
 
 def readTripData(year: int, city: str, data_dir: str) -> pd.DataFrame:
     """
-    Description:
     Reads trip data for a given year and city, processes
     trip points, and merges it with origin-destination flow
-     data to get the name of Origin and Destination.
+    data to get the name of Origin and Destination.
 
-    Parameters:
+    Args:
     - year (int): The year of the trip data.
     - city (str): The name of the city for which the trip data
     is being retrieved.
@@ -79,20 +78,19 @@ def readTripData(year: int, city: str, data_dir: str) -> pd.DataFrame:
 
 def readRawData(data_dir: str, cores: int = max(1, cpu_count() // 2)) -> pd.DataFrame:
     """
-    Description:
     Reads and compiles raw JSON data files for a given year and city by parallel processing
     multiple monthly files.
 
-    Parameters:
-    - cores (int): The number of CPU cores to be used for parallel processing.
-    - data_dir (str): The directory where the raw data files are stored.
+    Args:
+        cores (int): The number of CPU cores to be used for parallel processing. By default, it uses half of the available cores.
+        data_dir (str): The directory where the raw data files are stored.
 
     Returns:
-    - pd.DataFrame: A DataFrame containing compiled raw data from all monthly files.
+        pd.DataFrame: A DataFrame containing compiled raw data from all monthly files.
 
     Example:
-    >>> df = readRawData(2023, "path_to_root/city/year")
-    >>> print(df.head())
+        >>> df = readRawData(2023, "path_to_root/city/year")
+        >>> print(df.head())
     """
     root = data_dir
     month_files = os.listdir(root)
@@ -104,14 +102,13 @@ def readRawData(data_dir: str, cores: int = max(1, cpu_count() // 2)) -> pd.Data
 
 def processData(df: pd.DataFrame, shape_files: List[gpd.GeoDataFrame]) -> pd.DataFrame:
     """
-    Description:
-        Processes the trip data by calculating various features such as speed, acceleration,
-        jerk, angular deviation, and straightness index. It also checks if the trip starts or ends
-        at a bus, train, or metro stop and if it is found at a green space.
-        The function also filters out trips with less than 5 impressions and calculates the time taken
-        and distance covered for each trip.
+    Processes the trip data by calculating various features such as speed, acceleration,
+    jerk, angular deviation, and straightness index. It also checks if the trip starts or ends
+    at a bus, train, or metro stop and if it is found at a green space.
+    The function also filters out trips with less than 5 impressions and calculates the time taken
+    and distance covered for each trip.
 
-    Parameters:
+    Args:
         df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
         shape_files (List[gpd.GeoDataFrame]): List of GeoDataFrames containing bus, train, metro stops and green space polygons.
 
@@ -240,11 +237,11 @@ def processData(df: pd.DataFrame, shape_files: List[gpd.GeoDataFrame]) -> pd.Dat
 
 def removeOutlier(group: pd.DataFrame) -> pd.DataFrame:
     """
-    Description:
-        Removes outliers from the speed column of the DataFrame based on z-score.
-        If the z-score is greater than or equal to 3, the speed is replaced with the median speed.
 
-    parameters:
+    Removes outliers from the speed column of the DataFrame based on z-score.
+    If the z-score is greater than or equal to 3, the speed is replaced with the median speed.
+
+    Args:
         group (pd.DataFrame): DataFrame containing speed and speed_z_score columns.
 
     Returns:
@@ -264,12 +261,12 @@ def removeOutlier(group: pd.DataFrame) -> pd.DataFrame:
 
 def calculateBearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
-    Description:
-        Calculates the initial bearing (or forward azimuth) between two geographical coordinates.
-        This is the angle between the north direction and the line connecting the start point to the end point.
-        The result is normalized to a value between 0 and 360 degrees.
 
-    Parameters:
+    Calculates the initial bearing (or forward azimuth) between two geographical coordinates.
+    This is the angle between the north direction and the line connecting the start point to the end point.
+    The result is normalized to a value between 0 and 360 degrees.
+
+    Args:
         lat1 (float): Latitude of the starting point in decimal degrees.
         lon1 (float): Longitude of the starting point in decimal degrees.
         lat2 (float): Latitude of the ending point in decimal degrees.
@@ -295,10 +292,9 @@ def calculateBearing(lat1: float, lon1: float, lat2: float, lon2: float) -> floa
 
 def checkIfNearStop(df: pd.DataFrame, sdf: gpd.GeoDataFrame) -> List[int]:
     """
-    Description:
-        Checks if the first and last points of a trip are within a bus stop area.
+    Checks if the first and last points of a trip are within a bus stop area.
 
-    Parameters:
+    Args:
         df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
         sdf (gpd.GeoDataFrame): GeoDataFrame containing bus stop polygons.
 
@@ -350,14 +346,14 @@ def checkIfNearStop(df: pd.DataFrame, sdf: gpd.GeoDataFrame) -> List[int]:
 
 def checkIfAtGrrenSpace(df: pd.DataFrame, sdf: gpd.GeoDataFrame) -> List[int]:
     """
-    Description:
-        Checks if the first point of a trip is within a green space area.
-        If it is, returns 1 for all points in the trip; otherwise, returns 0.
-        Also checks if the last point of a trip is within a green space area.
-        If it is, returns 1 for all points in the trip; otherwise, returns 0.
-        If both the first and last points are within a green space area, returns 2 for all points in the trip.
 
-    Parameters:
+    Checks if the first point of a trip is within a green space area.
+    If it is, returns 1 for all points in the trip; otherwise, returns 0.
+    Also checks if the last point of a trip is within a green space area.
+    If it is, returns 1 for all points in the trip; otherwise, returns 0.
+    If both the first and last points are within a green space area, returns 2 for all points in the trip.
+
+    Args:
         df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
         sdf (gpd.GeoDataFrame): GeoDataFrame containing green space polygons.
 
@@ -393,10 +389,10 @@ def checkIfAtGrrenSpace(df: pd.DataFrame, sdf: gpd.GeoDataFrame) -> List[int]:
 
 def calculateStraightnessIndex(df: pd.DataFrame) -> List[float]:
     """
-    Description:
-        Calculates the straightness index of a trip based on the distance covered and the straight line distance.
 
-    Parameters:
+    Calculates the straightness index of a trip based on the distance covered and the straight line distance.
+
+    Args:
         df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
 
     Returns:
@@ -428,6 +424,20 @@ def calculateStraightnessIndex(df: pd.DataFrame) -> List[float]:
 
 
 def generateTrajStats(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Generates trajectory statistics for each trip in the DataFrame.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing trip data with various features.
+
+    Returns:
+        pd.DataFrame: DataFrame containing trajectory statistics for each trip.
+
+    Example:
+        >>> df = pd.DataFrame({"uid": [1, 1], "trip_id": [1, 1], "new_speed": [10, 20]})
+        >>> generateTrajStats(df)
+    """
+
     progress_bar = tqdm(total=25)
 
     temp_df = df.copy()
