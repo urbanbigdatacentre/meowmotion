@@ -9,3 +9,4 @@ data/
 *.pkl
 *.joblib
 *.h5
+site/
