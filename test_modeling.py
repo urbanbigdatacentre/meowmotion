@@ -1,6 +1,4 @@
-import pandas as pd
-
-from meowmotion.model_tmd import trainMLModel
+from meowmotion.model_tmd import modePredict
 
 # proc_data = pd.read_csv(
 #     "D:/Mobile Device Data/TMD_repo/ML_model/data/final_processed_data_ready_to_use.csv"
@@ -9,13 +7,32 @@ from meowmotion.model_tmd import trainMLModel
 # stat_df.to_csv('data/stat_df.csv', index=False)
 # val_stat_df.to_csv('data/val_stat_df.csv', index=False)
 
-stat_df = pd.read_csv("data/stat_df.csv")
-val_stat_df = pd.read_csv("data/val_stat_df.csv")
+# stat_df = pd.read_csv("data/stat_df.csv")
+# val_stat_df = pd.read_csv("data/val_stat_df.csv")
 
-acc, prec, recall, cm = trainMLModel(
-    df_tr=stat_df, df_val=val_stat_df, model_name="RandomForest"
+# acc, prec, recall, cm = trainMLModel(
+#     df_tr=stat_df, df_val=val_stat_df, model_name="RandomForest"
+# )
+# print(f"Accuracy: {acc}")
+# print(f"Precision: {prec}")
+# print(f"Recall: {recall}")
+# print(f"Confusion Matrix:\n{cm}")
+
+year = 2019
+artifacts_dir = ""
+model_file_name = ""
+le_file_name = ""
+processed_non_agg_data = ""
+stats_agg_data = ""
+shape_file = ""
+output_dir = ""
+
+op_df, agg_op_df = modePredict(
+    processed_non_agg_data=processed_non_agg_data,
+    stats_agg_data=stats_agg_data,
+    artifacts_dir=artifacts_dir,
+    model_file_name=model_file_name,
+    le_file_name=le_file_name,
+    shape_file=shape_file,
+    output_dir=output_dir,
 )
-print(f"Accuracy: {acc}")
-print(f"Precision: {prec}")
-print(f"Recall: {recall}")
-print(f"Confusion Matrix:\n{cm}")
