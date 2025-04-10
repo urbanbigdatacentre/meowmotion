@@ -12,4 +12,10 @@ from meowmotion.model_tmd import trainMLModel
 stat_df = pd.read_csv("data/stat_df.csv")
 val_stat_df = pd.read_csv("data/val_stat_df.csv")
 
-trainMLModel(df_tr=stat_df, df_val=val_stat_df, model_name="RandomForest")
+acc, prec, recall, cm = trainMLModel(
+    df_tr=stat_df, df_val=val_stat_df, model_name="RandomForest"
+)
+print(f"Accuracy: {acc}")
+print(f"Precision: {prec}")
+print(f"Recall: {recall}")
+print(f"Confusion Matrix:\n{cm}")
