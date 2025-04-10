@@ -42,3 +42,4 @@ jobs:
       with:
         personal_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./meowmotion/site
+        force_orphan: true
