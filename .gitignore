@@ -1,5 +1,11 @@
 __pycache__
 travel_mode_detection/__pycache__
+data/
 *.pyc
 *.env
 *.docx
+*.csv
+*.pickle
+*.pkl
+*.joblib
+*.h5
