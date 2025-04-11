@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../assets/meowmotion_logo.png" alt="MeowMotion Logo" width="120"/>
+  <img src="../../assets/meowmotion_logo.png" alt="MeowMotion Logo" width="120"/>
 </p>
 
 <p align="center">
