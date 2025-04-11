@@ -170,6 +170,46 @@ def generateOD(
     save_drived_products: Optional[bool] = True,
     od_type: Optional[List[str]] = ["type3"],
 ) -> List[pd.DataFrame]:
+    """
+    Generates weighted Origin-Destination (OD) matrices from raw trip data, enriched with
+    demographic and activity-based weights. Also optionally saves intermediate processed
+    products like stay points and trip points.
+
+    Args:
+        trip_df (pd.DataFrame): Trip-level data including timestamps, user ID, and coordinates.
+        shape (gpd.GeoDataFrame): Geographic boundaries used for spatial joins (e.g., MSOAs).
+        active_day_df (pd.DataFrame): Number of active days per user.
+        hldf (pd.DataFrame): User home location and IMD/council information.
+        adult_population (pd.DataFrame): Adult population breakdown by council and IMD quintile.
+        org_loc_cols (Tuple[str, str]): Column names for origin longitude and latitude.
+        dest_loc_cols (Tuple[str, str]): Column names for destination longitude and latitude.
+        output_dir (str): Directory path to save output files.
+        cpu_cores (int, optional): Number of CPU cores to use. Defaults to half of available CPUs.
+        save_drived_products (bool, optional): Whether to save intermediate datasets. Defaults to True.
+        od_type (List[str], optional): Types of OD matrices to generate. Options include:
+            - "type1": AM Peak Weekdays (7am–10am)
+            - "type2": PM Peak Weekdays (4pm–7pm)
+            - "type3": All Trips
+            - "type4": All Trips excluding type1 and type2
+            Defaults to ["type3"].
+
+    Returns:
+        List[pd.DataFrame]: List of OD matrix DataFrames for each type in `od_type`.
+
+    Example:
+        >>> od_matrices = generateOD(
+                trip_df=trip_data,
+                shape=lsoa_shapes,
+                active_day_df=active_days,
+                hldf=home_locations,
+                adult_population=population_stats,
+                org_loc_cols=('org_lng', 'org_lat'),
+                dest_loc_cols=('dest_lng', 'dest_lat'),
+                output_dir='./output',
+                od_type=["type3", "type1"]
+            )
+        >>> print(od_matrices[0].head())
+    """
 
     print(shape.crs)
     shape = shape.to_crs("EPSG:4326")
@@ -684,8 +724,42 @@ def generateOD(
 
 
 def getWeights(
-    geo_df, hldf, adult_population, origin_col, destination_col, active_day_df
-):
+    geo_df: pd.DataFrame,
+    hldf: pd.DataFrame,
+    adult_population: pd.DataFrame,
+    origin_col: str,
+    destination_col: str,
+    active_day_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Computes activity-based, IMD-level, and council-level weights for users to scale
+    observed trips to population-level estimates.
+
+    Args:
+        geo_df (pd.DataFrame): Geo-tagged trip DataFrame containing user ID and trip counts.
+        hldf (pd.DataFrame): Home location and demographic info including IMD and council.
+        adult_population (pd.DataFrame): Population statistics broken down by IMD and council.
+        origin_col (str): Name of the column containing origin geo code.
+        destination_col (str): Name of the column containing destination geo code.
+        active_day_df (pd.DataFrame): DataFrame with total number of active days per user.
+
+    Returns:
+        pd.DataFrame: DataFrame with user-level weights including:
+            - `imd_weight`
+            - `council_weight`
+            - `activity_weight`
+
+    Example:
+        >>> weighted_df = getWeights(
+                geo_df=geo_enriched_data,
+                hldf=home_locations,
+                adult_population=population_stats,
+                origin_col="origin_geo_code",
+                destination_col="destination_geo_code",
+                active_day_df=active_days
+            )
+        >>> print(weighted_df[['uid', 'activity_weight', 'imd_weight']].head())
+    """
 
     print(f"{datetime.now()}: Calculating Weights")
     od_trip_df = pd.DataFrame(
