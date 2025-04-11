@@ -1,9 +1,15 @@
 import json
+from datetime import datetime
+from multiprocessing import Pool, cpu_count
+from typing import Tuple
 
+import geopandas as gpd
 import pandas as pd
 from skmob import TrajDataFrame
 from skmob.preprocessing import detection
 from tqdm import tqdm
+
+from meowmotion.process_data import getLoadBalancedBuckets, spatialJoin
 
 
 def getStopNodes(tdf: TrajDataFrame, time_th: int, radius: int) -> pd.DataFrame:
@@ -148,3 +154,71 @@ def fetchDataFromRaw(record: pd.Series, raw_df: TrajDataFrame) -> list:
         observed_stay_duration,
     ]
     return temp
+
+
+def generateOD(
+    trip_df: pd.DataFrame,
+    shape: gpd.GeoDataFrame,
+    org_loc_cols: Tuple[str, str],  # (lng, lat)
+    dest_loc_cols: Tuple[str, str],  # (lng, lat)
+    cpu_cores: int = max(1, cpu_count() // 2),
+) -> None:
+
+    print(shape.crs)
+    shape = shape.to_crs("EPSG:4326")
+    print(f"{datetime.now()}: Indexing Shape File")
+    shape.sindex
+
+    #############################################################
+    #                                                           #
+    #                   Spatial Join for Origin                 #
+    #                                                           #
+    #############################################################
+
+    df_collection = getLoadBalancedBuckets(trip_df, cpu_cores)
+    print(f"{datetime.now()}: Spatial Join for Origin Started")
+    # args=[(tdf, shape, 'org_lng', 'org_lat', 'origin') for tdf in df_collection]
+    args = [
+        (tdf, shape, org_loc_cols[0], org_loc_cols[1], "origin")
+        for tdf in df_collection
+    ]
+    with Pool(cpu_cores) as pool:
+        results = pool.starmap(spatialJoin, args)
+    df_collection = [*results]
+    print(f"{datetime.now()}: Spatial Join for Origin Finished")
+
+    #############################################################
+    #                                                           #
+    #                  Spatial Join for Destination             #
+    #                                                           #
+    #############################################################
+
+    print(f"{datetime.now()}: Spatial Join for Destination Started")
+    # args=[(tdf, shape, 'dest_lng', 'dest_lat', 'destination') for tdf in df_collection]
+    args = [
+        (tdf, shape, dest_loc_cols[0], dest_loc_cols[1], "destination")
+        for tdf in df_collection
+    ]
+    with Pool(cpu_cores) as pool:
+        results = pool.starmap(spatialJoin, args)
+    geo_df = pd.concat([*results])
+    del results
+    print(f"{datetime.now()}: Spatial Join for Destination Finished")
+    print(geo_df[~geo_df["origin_geo_code"].isna()].head())
+
+    #############################################################
+    #                                                           #
+    # Filtering trips based on travel time and stay duration    #
+    #                                                           #
+    #############################################################
+
+    print(f"{datetime.now()}: Filtering on Travel Time and Stay Duration")
+    geo_df = geo_df[
+        (geo_df["dest_arival_time"] - geo_df["org_leaving_time"]).dt.total_seconds()
+        / 3600
+        <= 24
+    ]
+    geo_df = geo_df[geo_df["stay_duration"] <= 3600]
+    nusers = geo_df["uid"].nunique()
+    print(f"{datetime.now()}: Total Unique Users: {nusers}")
+    return None
