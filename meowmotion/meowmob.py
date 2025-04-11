@@ -1,9 +1,10 @@
 import json
 from datetime import datetime
 from multiprocessing import Pool, cpu_count
-from typing import Tuple
+from typing import Optional, Tuple
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 from skmob import TrajDataFrame
 from skmob.preprocessing import detection
@@ -164,7 +165,8 @@ def generateOD(
     org_loc_cols: Tuple[str, str],  # (lng, lat)
     dest_loc_cols: Tuple[str, str],  # (lng, lat)
     output_dir: str,
-    cpu_cores: int = max(1, cpu_count() // 2),
+    cpu_cores: Optional[int] = max(1, cpu_count() // 2),
+    save_drived_products: Optional[bool] = True,
 ) -> None:
 
     print(shape.crs)
@@ -352,5 +354,160 @@ def generateOD(
             "tpad",
         ]
     ]
+
+    #############################################################
+    #                                                           #
+    #                Add Travel Mode Placeholder                #
+    #                                                           #
+    #############################################################
+
+    geo_df = geo_df.assign(travel_mode=np.nan)
+
+    if save_drived_products:
+
+        #############################################################
+        #                                                           #
+        #              Save Aggregated Flow                         #
+        #                                                           #
+        #############################################################
+
+        print(f"{datetime.now()}: Saving Non-Aggregated OD Flow")
+        saveFile(
+            path=f"{output_dir}/na_flows",
+            fname="na_flows.csv",
+            df=geo_df[
+                [
+                    "uid",
+                    "imd_quintile",
+                    "trip_id",
+                    "org_lat",
+                    "org_lng",
+                    "org_arival_time",
+                    "org_leaving_time",
+                    "dest_lat",
+                    "dest_lng",
+                    "dest_arival_time",
+                    "total_trips",
+                    "total_active_days",
+                    "tpad",
+                    "travel_mode",
+                ]
+            ],
+        )
+        print(f"{datetime.now()}:  Non-Aggregated OD Flow Saved")
+
+        #############################################################
+        #                                                           #
+        #              Save Aggregated Flow                         #
+        #                                                           #
+        #############################################################
+
+        print(f"{datetime.now()}: Saving Aggregated OD Flow")
+
+        saveFile(
+            path=f"{output_dir}/agg_stay_points",
+            fname="agg_stay_points.csv",
+            df=geo_df[
+                [
+                    "origin_geo_code",
+                    "destination_geo_code",
+                    "org_arival_time",
+                    "org_leaving_time",
+                    "dest_arival_time",
+                    "travel_mode",
+                ]
+            ],
+        )
+        print(f"{datetime.now()}: Aggregated OD Flow Saved")
+
+        #############################################################
+        #                                                           #
+        #              Save Non Aggregated Stay Points              #
+        #                                                           #
+        #############################################################
+
+        print(f"{datetime.now()}: Saving Non-Aggragated Stay Points")
+
+        saveFile(
+            path=f"{output_dir}/non_agg_stay_points",
+            fname="non_agg_stay_points.csv",
+            df=geo_df[
+                [
+                    "uid",
+                    "imd_quintile",
+                    "stay_points",
+                    "org_arival_time",
+                    "org_leaving_time",
+                    "stay_duration",
+                    "org_lat",
+                    "org_lng",
+                    "total_active_days",
+                ]
+            ].rename(
+                columns={
+                    "org_lat": "centroid_lat",  # Changing the name to centroid because stay points don't have origin and destination
+                    "org_lng": "centroid_lng",
+                    "org_arival_time": "stop_node_arival_time",
+                    "org_leaving_time": "stop_node_leaving_time",
+                }
+            ),
+        )
+
+        print(f"{datetime.now()}: Non-Aggragated Stay Points Saved")
+
+        #############################################################
+        #                                                           #
+        #                  Save Aggregated Stay Points              #
+        #                                                           #
+        #############################################################
+
+        print(f"{datetime.now()}: Saving Aggragated Stay Points")
+
+        saveFile(
+            path=f"{output_dir}/agg_stay_points",
+            fname="agg_stay_points.csv",
+            df=geo_df[
+                [
+                    "imd_quintile",
+                    "origin_geo_code",
+                    "org_arival_time",
+                    "org_leaving_time",
+                    "stay_duration",
+                ]
+            ].rename(
+                columns={
+                    "org_arival_time": "stop_node_arival_time",
+                    "org_leaving_time": "stop_node_leaving_time",
+                    "origin_geo_code": "stop_node_geo_code",
+                }
+            ),
+        )
+
+        print(f"{datetime.now()}: Aggragated Stay Points Saved")
+
+        #############################################################
+        #                                                           #
+        #                      Save Trip Points                     #
+        #                                                           #
+        #############################################################
+
+        print(f"{datetime.now()}: Saving Trips Points")
+
+        saveFile(
+            path=f"{output_dir}/trip_points",
+            fname="trip_points.csv",
+            df=geo_df[
+                [
+                    "uid",
+                    "imd_quintile",
+                    "trip_id",
+                    "trip_points",
+                    "total_active_days",
+                    "travel_mode",
+                ]
+            ],
+        )
+
+        print(f"{datetime.now()}: Trips Points Saved")
 
     return None
