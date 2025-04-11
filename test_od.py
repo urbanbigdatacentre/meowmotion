@@ -166,6 +166,7 @@ if __name__ == "__main__":
     hldf_file = (
         "U:\\Projects\\Huq\\Faraz\\huq_city_data\\homeResults\\Glasgow_2019_results.csv"
     )
+    adult_population_file = "U:/Projects/Huq/od_project/outputs/imd_population_estimates/Glasgow_IMD_summary.csv"
     output_dir = "U:\\Projects\\Huq\\Faraz\\package_testing"
     org_loc_cols = ("org_lng", "org_lat")
     dest_loc_cols = ("dest_lng", "dest_lat")
@@ -191,12 +192,14 @@ if __name__ == "__main__":
         )
 
     hldf = pd.read_csv(hldf_file)
+    adult_population_df = pd.read_csv(adult_population_file)
 
     generateOD(
         trip_df=trip_df,
         shape=shape,
         active_day_df=active_day_df,
         hldf=hldf,
+        adult_population=adult_population_df,
         org_loc_cols=org_loc_cols,
         dest_loc_cols=dest_loc_cols,
         output_dir=output_dir,
