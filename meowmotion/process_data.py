@@ -6,7 +6,9 @@ import zipfile
 from datetime import datetime
 from os.path import join
 
+import geopandas as gpd
 import pandas as pd
+from shapely.geometry import Point
 from skmob import TrajDataFrame
 from skmob.preprocessing import filtering
 
@@ -181,3 +183,31 @@ def saveFile(path: str, fname: str, df: pd.DataFrame) -> None:
         os.makedirs(path)
     df.to_csv(join(path, fname), index=False)
     return None
+
+
+def spatialJoin(
+    df: pd.DataFrame,
+    shape: gpd.GeoDataFrame,
+    long_col: str,
+    lat_col: str,
+    loc_type: str,
+):
+    # return spatialJoin(df,shape,long_col,lat_col,loc_type)
+    geometry = [Point(xy) for xy in zip(df[long_col], df[lat_col])]
+    geo_df = gpd.GeoDataFrame(df, geometry=geometry, crs="EPSG:4326")
+    geo_df.sindex
+    geo_df = gpd.sjoin(
+        geo_df,
+        shape[["geo_code", "name", "geometry"]],
+        how="left",
+        predicate="intersects",
+    )
+    col_rename_dict = {
+        "geo_code": f"{loc_type}_geo_code",
+        "name": f"{loc_type}_name",
+    }
+    geo_df = geo_df.rename(columns=col_rename_dict)
+    geo_df = geo_df.drop(columns=["index_right", "geometry"])
+    geo_df = geo_df.reset_index(drop=True)
+    geo_df = pd.DataFrame(geo_df)
+    return geo_df
