@@ -39,6 +39,7 @@ Whether you're working with mobile phone app data or other location sources, Meo
   - **Novel activity-based weighting** based on users' activity in the data.
   
   Scales trips accordingly and produces **four different types of Origin-Destination (OD) matrices**, offering robust representations of mobility flows.
+  
   - **Type 1**: AM peak weekdays (7 AM – 10 AM)  
   - **Type 2**: PM peak weekdays (4 PM – 7 PM)  
   - **Type 3**: All-day / All trips  
