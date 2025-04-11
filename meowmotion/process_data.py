@@ -188,12 +188,12 @@ def saveFile(path: str, fname: str, df: pd.DataFrame) -> None:
 def spatialJoin(
     df: pd.DataFrame,
     shape: gpd.GeoDataFrame,
-    long_col: str,
+    lng_col: str,
     lat_col: str,
-    loc_type: str,
+    loc_type: str,  # 'origin' or 'destination'
 ):
-    # return spatialJoin(df,shape,long_col,lat_col,loc_type)
-    geometry = [Point(xy) for xy in zip(df[long_col], df[lat_col])]
+
+    geometry = [Point(xy) for xy in zip(df[lng_col], df[lat_col])]
     geo_df = gpd.GeoDataFrame(df, geometry=geometry, crs="EPSG:4326")
     geo_df.sindex
     geo_df = gpd.sjoin(

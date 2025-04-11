@@ -9,7 +9,7 @@ from skmob import TrajDataFrame
 from skmob.preprocessing import detection
 from tqdm import tqdm
 
-from meowmotion.process_data import getLoadBalancedBuckets, spatialJoin
+from meowmotion.process_data import getLoadBalancedBuckets, saveFile, spatialJoin
 
 
 def getStopNodes(tdf: TrajDataFrame, time_th: int, radius: int) -> pd.DataFrame:
@@ -159,8 +159,10 @@ def fetchDataFromRaw(record: pd.Series, raw_df: TrajDataFrame) -> list:
 def generateOD(
     trip_df: pd.DataFrame,
     shape: gpd.GeoDataFrame,
+    active_day_df: pd.DataFrame,
     org_loc_cols: Tuple[str, str],  # (lng, lat)
     dest_loc_cols: Tuple[str, str],  # (lng, lat)
+    output_dir: str,
     cpu_cores: int = max(1, cpu_count() // 2),
 ) -> None:
 
@@ -204,8 +206,6 @@ def generateOD(
     geo_df = pd.concat([*results])
     del results
     print(f"{datetime.now()}: Spatial Join for Destination Finished")
-    print(geo_df[~geo_df["origin_geo_code"].isna()].head())
-
     #############################################################
     #                                                           #
     # Filtering trips based on travel time and stay duration    #
@@ -221,4 +221,100 @@ def generateOD(
     geo_df = geo_df[geo_df["stay_duration"] <= 3600]
     nusers = geo_df["uid"].nunique()
     print(f"{datetime.now()}: Total Unique Users: {nusers}")
+
+    print(geo_df[~geo_df["origin_geo_code"].isna()].head())
+
+    geo_df["origin_geo_code"] = geo_df["origin_geo_code"].fillna("Others")
+    geo_df["destination_geo_code"] = geo_df["destination_geo_code"].fillna("Others")
+    geo_df = geo_df[geo_df["origin_geo_code"] != "Others"]
+    geo_df = geo_df[geo_df["destination_geo_code"] != "Others"]
+    print(f"{datetime.now()}: Filtering Completed")
+
+    #############################################################
+    #                                                           #
+    #                   Disclosure Analysis                     #
+    #                                                           #
+    #############################################################
+
+    print(f"{datetime.now()}: Generating file for disclosure analysis")
+    analysis_df = (
+        geo_df.groupby(["origin_geo_code", "destination_geo_code"])
+        .agg(
+            total_trips=pd.NamedAgg(column="uid", aggfunc="count"),
+            num_users=pd.NamedAgg(column="uid", aggfunc="nunique"),
+        )
+        .reset_index()
+    )
+
+    print(f"{datetime.now()}: Saving disclosure analysis file")
+    saveFile(path=output_dir, fname="disclosure_analysis_.csv", df=analysis_df)
+    print(f"{datetime.now()}: Saved disclosure analysis file")
+
+    ############################################################
+    #                                                          #
+    #                   Adding Trip ID                         #
+    #                                                          #
+    ############################################################
+
+    print(f"{datetime.now()}: Adding Trip ID")
+    geo_df = geo_df.assign(
+        trip_id=lambda df: df.groupby(["uid"])["trip_time"].transform(
+            lambda x: [i for i in range(1, len(x) + 1)]
+        )
+    )
+
+    # first_cols = ['uid', 'trip_id']
+    # other_cols = [col for col in geo_df.columns if col not in first_cols]
+    # geo_df = geo_df[first_cols + other_cols]
+
+    geo_df = geo_df[
+        [
+            "uid",
+            "trip_id",
+            "org_lat",
+            "org_lng",
+            "org_arival_time",
+            "org_leaving_time",
+            "dest_lat",
+            "dest_lng",
+            "dest_arival_time",
+            "stay_points",
+            "trip_points",
+            "trip_time",
+            "stay_duration",
+            "observed_stay_duration",
+            "origin_geo_code",
+            "origin_name",
+            "destination_geo_code",
+            "destination_name",
+        ]
+    ]
+    print(f"{datetime.now()}: Trip ID Added")
+
+    #############################################################
+    #                                                           #
+    #                    Calculate Total Trips/User             #
+    #                                                           #
+    #############################################################
+
+    print(f"{datetime.now()}: Calculating Total Trips/User")
+    geo_df["month"] = geo_df["org_leaving_time"].dt.month
+    geo_df = geo_df.assign(
+        total_trips=lambda df: df.groupby("uid")["trip_id"].transform(lambda x: len(x))
+    )
+    geo_df = geo_df.drop(columns=["month"])
+    print(f"{datetime.now()}: Trips/User Calculated")
+
+    #############################################################
+    #                                                           #
+    #                   Add Trips/Active Day                    #
+    #                                                           #
+    #############################################################
+
+    print(f"{datetime.now()}: Calculating TPAD")
+    geo_df = geo_df.merge(active_day_df, how="left", on="uid").assign(
+        tpad=lambda tdf: tdf["total_trips"] / tdf["total_active_days"]
+    )
+    print(f"{datetime.now()}: TPAD Calculated")
+
     return None

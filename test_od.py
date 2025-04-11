@@ -2,6 +2,8 @@
 # from datetime import datetime
 # from multiprocessing import Pool
 
+import os
+
 import geopandas as gpd
 import pandas as pd
 
@@ -158,6 +160,14 @@ if __name__ == "__main__":
 
     trip_file = "U:\\Projects\\Huq\\Faraz\\final_OD_work_v2\\Glasgow\\2019\\trips\\huq_trips_Glasgow_2019_1_500m_5min_100m.csv"
     shape_file = "U:/Projects/Huq/Faraz/huq_city_data/Shapefiles/msoa_intzone_boundaries/glasgow/msoa_glasgow.shp"
+    activity_stats_path = (
+        "U:\\Projects\\Huq\\Faraz\\final_OD_work_v2\\Glasgow\\2019\\activity_stats"
+    )
+    act_stat_files = [
+        f"{activity_stats_path}/{f}" for f in os.listdir(activity_stats_path)
+    ]
+
+    output_dir = "U:\\Projects\\Huq\\Faraz\\package_testing"
     org_loc_cols = ("org_lng", "org_lat")
     dest_loc_cols = ("dest_lng", "dest_lat")
     cpu_cores = 12
@@ -167,12 +177,24 @@ if __name__ == "__main__":
         parse_dates=["org_arival_time", "org_leaving_time", "dest_arival_time"],
     )
     shape = gpd.read_file(shape_file)
+    if len(act_stat_files) == 1:
+        active_day_df = pd.read_csv(act_stat_files[0])
+    else:
+        active_day_df = []
+        for file in act_stat_files:
+            active_day_df.append(pd.read_csv(file))
+        active_day_df = pd.concat(active_day_df)
+        active_day_df = (
+            active_day_df.groupby("uid")["total_active_days"].sum().reset_index()
+        )
 
     generateOD(
         trip_df=trip_df,
         shape=shape,
+        active_day_df=active_day_df,
         org_loc_cols=org_loc_cols,
         dest_loc_cols=dest_loc_cols,
+        output_dir=output_dir,
         cpu_cores=cpu_cores,
     )
 
