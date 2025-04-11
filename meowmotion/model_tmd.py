@@ -8,7 +8,6 @@ import joblib
 import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
-from shapely.geometry import Point
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     accuracy_score,
@@ -19,6 +18,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
 
 from meowmotion.data_formatter import generateTrajStats
+from meowmotion.process_data import spatialJoin
 
 
 def processTrainingData(data: pd.DataFrame) -> pd.DataFrame:
@@ -602,25 +602,25 @@ def modePredict(
     print(
         f"{datetime.now()}: Spatial Join for Origin Geo Codes (It may take a few minutes...)"
     )
-    geometry = [Point(xy) for xy in zip(op_df["org_lng"], op_df["org_lat"])]
-    op_df = gpd.GeoDataFrame(op_df, crs="EPSG:4326", geometry=geometry)
-    op_df = op_df.sjoin(
-        gdf[["geo_code", "geometry"]], how="left", predicate="intersects"
+    op_df = spatialJoin(
+        op_df,
+        gdf,
+        "org_lng",
+        "org_lat",
+        loc_type="origin",
     )
-    op_df = op_df.rename(columns={"geo_code": "org_geo_code"})
-    op_df = op_df.drop(columns=["geometry", "index_right"])
 
     # Add destination geo code
     print(
         f"{datetime.now()}: Spatial Join for Destination Geo Codes (It may take a few minutes...)"
     )
-    geometry = [Point(xy) for xy in zip(op_df["dest_lng"], op_df["dest_lat"])]
-    op_df = gpd.GeoDataFrame(op_df, crs="EPSG:4326", geometry=geometry)
-    op_df = op_df.sjoin(
-        gdf[["geo_code", "geometry"]], how="left", predicate="intersects"
+    op_df = spatialJoin(
+        op_df,
+        gdf,
+        "dest_lng",
+        "dest_lat",
+        loc_type="destination",
     )
-    op_df = op_df.rename(columns={"geo_code": "dest_geo_code"})
-    op_df = op_df.drop(columns=["geometry", "index_right"])
 
     print(
         f"{datetime.now()}: Getting Unique Trip Number (It may take a few minutes...)"
@@ -632,8 +632,8 @@ def modePredict(
     op_df = op_df[
         [
             "trip_num",
-            "org_geo_code",
-            "dest_geo_code",
+            "origin_geo_code",
+            "destination_geo_code",
             "lat",
             "lng",
             "datetime",
@@ -649,7 +649,7 @@ def modePredict(
     agg_op_df = op_df.copy()
     agg_op_df = agg_op_df.drop_duplicates(subset=["trip_id"])
     agg_op_df = (
-        agg_op_df.groupby(["org_geo_code", "dest_geo_code", "travel_mode"])
+        agg_op_df.groupby(["origin_geo_code", "destination_geo_code", "travel_mode"])
         .size()
         .unstack(fill_value=0)
         .reset_index()
