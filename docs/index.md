@@ -34,16 +34,16 @@ Whether you're working with mobile phone app data or other location sources, Meo
   Creates trip data using detected stay points.
 
 - **Trip Scaling & OD Matrix Generation**  
-  Reads generated trips and applies:
+Reads generated trips and applies:
   - **Demographic-based user weighting** using external population/sample profiles.
   - **Novel activity-based weighting** based on users' activity in the data.
+
+Scales trips accordingly and produces **four different types of Origin-Destination (OD) matrices**, offering robust representations of mobility flows.
   
-  Scales trips accordingly and produces **four different types of Origin-Destination (OD) matrices**, offering robust representations of mobility flows.
-  
-  - **Type 1**: AM peak weekdays (7 AM – 10 AM)  
-  - **Type 2**: PM peak weekdays (4 PM – 7 PM)  
-  - **Type 3**: All-day / All trips  
-  - **Type 4**: Type 3 minus (Type 1 + Type 2), i.e. non-peak OD flows  
+    - Type 1: AM peak weekdays (7 AM – 10 AM)  
+    - Type 2: PM peak weekdays (4 PM – 7 PM)  
+    - Type 3: All-day / All trips  
+    - Type 4: Type 3 minus (Type 1 + Type 2), i.e. non-peak OD flows  
 
 - **Trajectory Processing**
   Analyzes raw and trip data to produce:
