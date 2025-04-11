@@ -15,7 +15,9 @@
 
 # Welcome to MeowMotion 🐾
 
-**MeowMotion** is a Python package designed for processing and analyzing geolocation data to detect trips and infer transport modes. Originally developed at the Urban Big Data Centre (UBDC), MeowMotion provides a complete pipeline from raw GPS data ingestion and preprocessing to machine learning-based travel mode detection. Whether you're working with mobile phone app data or other location sources, MeowMotion helps you clean, structure, and analyze the movement patterns of individuals, offering both granular trip-level outputs and high-level aggregated summaries. It's an ideal tool for researchers, analysts, and developers interested in urban mobility, transportation planning, or smart city applications.
+**MeowMotion** is a Python package designed for processing and analyzing geolocation data to detect trips and infer transport modes. Originally developed at the Urban Big Data Centre (UBDC), MeowMotion provides a complete pipeline from raw GPS data ingestion and preprocessing to machine learning-based travel mode detection.
+In addition to trip detection and classification, MeowMotion now includes advanced functionality for **trip scaling and OD matrix generation**. By applying **demographic-based** and **activity-based weighting**, it can scale trip data to better represent population-wide mobility. The package produces **five types of Origin-Destination (OD) matrices**, including peak period flows and residual non-peak movement, making it especially useful for transport modeling, demand analysis, and policy evaluation.
+Whether you're working with mobile phone app data or other location sources, MeowMotion helps you clean, structure, and analyze the movement patterns of individuals, offering both granular trip-level outputs and high-level aggregated summaries. It's an ideal tool for researchers, analysts, and developers interested in urban mobility, transportation planning, or smart city applications.
 
 ## Key Features
 
@@ -30,6 +32,17 @@
 
 - **Trip Generation**
   Creates trip data using detected stay points.
+
+- **Trip Scaling & OD Matrix Generation**  
+  Reads generated trips and applies:
+  - **Demographic-based user weighting** using external population/sample profiles.
+  - **Novel activity-based weighting** based on users' activity in the data.
+  
+  Scales trips accordingly and produces **four different types of Origin-Destination (OD) matrices**, offering robust representations of mobility flows.
+  - **Type 1**: AM peak weekdays (7 AM – 10 AM)  
+  - **Type 2**: PM peak weekdays (4 PM – 7 PM)  
+  - **Type 3**: All-day / All trips  
+  - **Type 4**: Type 3 minus (Type 1 + Type 2), i.e. non-peak OD flows  
 
 - **Trajectory Processing**
   Analyzes raw and trip data to produce:
@@ -51,10 +64,3 @@
   Generates two output datasets:
     - **Non-aggregated trip data** with origin geo code, destination geo code, and predicted travel mode for each trip.
     - **Aggregated summary** showing trip counts between each origin-destination pair, split by transport modes (Walk, Bicycle, Car, Bus, Train, Metro).
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
