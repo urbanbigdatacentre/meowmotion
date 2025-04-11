@@ -160,6 +160,7 @@ def generateOD(
     trip_df: pd.DataFrame,
     shape: gpd.GeoDataFrame,
     active_day_df: pd.DataFrame,
+    hldf: pd.DataFrame,
     org_loc_cols: Tuple[str, str],  # (lng, lat)
     dest_loc_cols: Tuple[str, str],  # (lng, lat)
     output_dir: str,
@@ -316,5 +317,40 @@ def generateOD(
         tpad=lambda tdf: tdf["total_trips"] / tdf["total_active_days"]
     )
     print(f"{datetime.now()}: TPAD Calculated")
+
+    #############################################################
+    #                                                           #
+    #                       Add IMD Level                       #
+    #                                                           #
+    #############################################################
+
+    print(f"{datetime.now()}: Adding IMD")
+    geo_df = geo_df.merge(
+        hldf[["uid", "council_name", "imd_quintile"]], on="uid", how="left"
+    )[
+        [
+            "uid",
+            "council_name",
+            "imd_quintile",
+            "trip_id",
+            "org_lat",
+            "org_lng",
+            "org_arival_time",
+            "org_leaving_time",
+            "dest_lat",
+            "dest_lng",
+            "origin_geo_code",
+            "destination_geo_code",
+            "dest_arival_time",
+            "stay_points",
+            "trip_points",
+            "trip_time",
+            "stay_duration",
+            "observed_stay_duration",
+            "total_trips",
+            "total_active_days",
+            "tpad",
+        ]
+    ]
 
     return None
