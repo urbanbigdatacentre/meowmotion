@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from multiprocessing import Pool, cpu_count
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import geopandas as gpd
 import numpy as np
@@ -162,12 +162,14 @@ def generateOD(
     shape: gpd.GeoDataFrame,
     active_day_df: pd.DataFrame,
     hldf: pd.DataFrame,
+    adult_population: pd.DataFrame,
     org_loc_cols: Tuple[str, str],  # (lng, lat)
     dest_loc_cols: Tuple[str, str],  # (lng, lat)
     output_dir: str,
     cpu_cores: Optional[int] = max(1, cpu_count() // 2),
     save_drived_products: Optional[bool] = True,
-) -> None:
+    od_type: Optional[List[str]] = ["type3"],
+) -> List[pd.DataFrame]:
 
     print(shape.crs)
     shape = shape.to_crs("EPSG:4326")
@@ -510,4 +512,264 @@ def generateOD(
 
         print(f"{datetime.now()}: Trips Points Saved")
 
-    return None
+    ##################################################################################
+    #                                                                                #
+    #                           OD Generation                                        #
+    #                                                                                #
+    ##################################################################################
+
+    print(f"{datetime.now()}: OD Calculation Started")
+    geo_df = geo_df[
+        (geo_df["total_active_days"] >= 7) & (geo_df["tpad"] >= 0.2)
+    ]  # Filtering based on number of active days and trips/active day
+    print(geo_df.head())
+
+    print(f"{datetime.now()}: Total Trips: {len(geo_df)}")
+    print(f'{datetime.now()}: Total Users: {len(geo_df["uid"].unique())}')
+    print(f'{datetime.now()}: TPAD Stats:\n {geo_df["tpad"].describe()}')
+    od_trip_df = pd.DataFrame(
+        geo_df.groupby(["uid", "origin_geo_code", "destination_geo_code"]).apply(
+            lambda x: len(x)
+        ),
+        columns=["trips"],
+    ).reset_index()  # Get number of Trips between orgins and destination for individual users
+    od_trip_df = od_trip_df.merge(
+        active_day_df, how="left", left_on="uid", right_on="uid"
+    ).assign(tpad=lambda tdf: tdf["trips"] / tdf["total_active_days"])
+
+    print(f"{datetime.now()}: Calculating Weights")
+    weighted_trips = getWeights(
+        geo_df,
+        hldf,
+        adult_population,
+        "origin_geo_code",
+        "destination_geo_code",
+        active_day_df,
+    )
+    weighted_trips = weighted_trips[
+        ["uid", "imd_weight", "council_weight", "activity_weight"]
+    ]
+    weighted_trips = weighted_trips.drop_duplicates(subset="uid", keep="first")
+    print(f"{datetime.now()}: Weights Calculated")
+    data_population = len(geo_df["uid"].unique())  # Total number of users in the data
+    adult_population = adult_population["Total"].sum()  # Total population
+
+    # Producing 5 Type of OD Matrices
+    # Type 1: AM peak weekdays (7am-10am)
+    # Type 2: PM peak weekdays (4 pm-7 pm)
+    # Type 3: Everything
+    # Type 4: Type 3 - (Type 1 + Type 2)
+
+    type_meta = {
+        "type1": "AM Peak Weekdays (7am-10am)",
+        "type2": "PM Peak Weekdays (4 pm-7 pm)",
+        "type3": "All (Everything)",
+        "type4": "All - (AM Peak + PM Peak)",
+    }
+    return_ods = []
+    for typ in od_type:
+        print(f"{datetime.now()}: Generating {type_meta[typ]} OD Matrix")
+        if typ == "type1":
+            geo_df = geo_df[
+                (geo_df["org_leaving_time"].dt.hour >= 7)
+                & (geo_df["org_leaving_time"].dt.hour <= 10)
+                & (geo_df["org_leaving_time"].dt.dayofweek < 5)
+            ]
+        elif typ == "type2":
+            geo_df = geo_df[
+                (geo_df["org_leaving_time"].dt.hour >= 16)
+                & (geo_df["org_leaving_time"].dt.hour <= 19)
+                & (geo_df["org_leaving_time"].dt.dayofweek < 5)
+            ]
+        elif typ == "type3":
+            pass
+        elif typ == "type4":
+            geo_df = geo_df[
+                ~(
+                    (geo_df["org_leaving_time"].dt.hour >= 7)
+                    & (geo_df["org_leaving_time"].dt.hour <= 10)
+                    & (geo_df["org_leaving_time"].dt.dayofweek < 5)
+                )
+            ]
+            geo_df = geo_df[
+                ~(
+                    (geo_df["org_leaving_time"].dt.hour >= 16)
+                    & (geo_df["org_leaving_time"].dt.hour <= 19)
+                    & (geo_df["org_leaving_time"].dt.dayofweek < 5)
+                )
+            ]
+
+        print(f"{datetime.now()}: Generating OD trip DF")
+        od_trip_df = pd.DataFrame(
+            geo_df.groupby(["uid", "origin_geo_code", "destination_geo_code"]).apply(
+                lambda x: len(x)
+            ),
+            columns=["trips"],
+        ).reset_index()  # Get number of Trips between orgins and destination for individual users
+        print(f"{datetime.now()}: Adding weights to OD trips")
+        od_trip_df = od_trip_df.merge(
+            weighted_trips[["uid", "activity_weight", "imd_weight", "council_weight"]],
+            how="left",
+            on="uid",
+        )
+        od_trip_df["imd_weight"] = od_trip_df["imd_weight"].fillna(1)
+        od_trip_df["council_weight"] = od_trip_df["council_weight"].fillna(1)
+        od_trip_df.reset_index(drop=True, inplace=True)
+        print(f"{datetime.now()}: Aggregating trips")
+        agg_od_df = (
+            od_trip_df.groupby(["origin_geo_code", "destination_geo_code"])
+            .agg(
+                trips=("trips", "sum"),
+                activity_weighted_trips=(
+                    "trips",
+                    lambda x: (
+                        (x * od_trip_df.loc[x.index, "activity_weight"]).sum()
+                        / data_population
+                    )
+                    * adult_population,
+                ),
+                council_weighted_trips=(
+                    "trips",
+                    lambda x: (
+                        (
+                            x
+                            * od_trip_df.loc[x.index, "imd_weight"]
+                            * od_trip_df.loc[x.index, "council_weight"]
+                        ).sum()
+                        / data_population
+                    )
+                    * adult_population,
+                ),
+                act_cncl_weighted_trips=(
+                    "trips",
+                    lambda x: (
+                        (
+                            x
+                            * od_trip_df.loc[x.index, "activity_weight"]
+                            * od_trip_df.loc[x.index, "imd_weight"]
+                            * od_trip_df.loc[x.index, "council_weight"]
+                        ).sum()
+                        / data_population
+                    )
+                    * adult_population,
+                ),
+            )
+            .reset_index()
+        )
+
+        agg_od_df = agg_od_df[agg_od_df["origin_geo_code"] != "Others"]
+        agg_od_df = agg_od_df[agg_od_df["destination_geo_code"] != "Others"]
+
+        print(f"{datetime.now()}: OD Generation Completed")
+        print(f"{datetime.now()}: Saving OD")
+        agg_od_df["percentage"] = (
+            agg_od_df["act_cncl_weighted_trips"]
+            / agg_od_df["act_cncl_weighted_trips"].sum()
+        ) * 100
+        agg_od_df = agg_od_df[
+            [
+                "origin_geo_code",
+                "destination_geo_code",
+                "trips",
+                "activity_weighted_trips",
+                "council_weighted_trips",
+                "act_cncl_weighted_trips",
+                "percentage",
+            ]
+        ]
+        saveFile(path=f"{output_dir}/od_matrix", fname=f"{typ}_od.csv", df=agg_od_df)
+        return_ods.append(agg_od_df)
+
+    return return_ods
+
+
+def getWeights(
+    geo_df, hldf, adult_population, origin_col, destination_col, active_day_df
+):
+
+    print(f"{datetime.now()}: Calculating Weights")
+    od_trip_df = pd.DataFrame(
+        geo_df.groupby(["uid", origin_col, destination_col]).apply(lambda x: len(x)),
+        columns=["trips"],
+    ).reset_index()  # Get number of Trips between orgins and destination for individual users
+    od_trip_df = od_trip_df.merge(active_day_df, how="left", on="uid").assign(
+        tpad=lambda tdf: tdf["trips"] / tdf["total_active_days"]
+    )
+    od_trip_df = pd.merge(
+        od_trip_df, hldf[["uid", "council_name", "imd_quintile"]], how="left", on="uid"
+    )
+    od_trip_df = od_trip_df.rename(columns={"council_name": "user_home_location"})
+
+    # Calculating Weights Based in Adult Population and data Population
+
+    annual_users = (
+        od_trip_df.dropna(subset=["imd_quintile"])
+        .groupby(["user_home_location", "imd_quintile"])
+        .agg(users=("uid", "nunique"))
+        .reset_index()
+        .merge(
+            adult_population,
+            left_on=["user_home_location", "imd_quintile"],
+            right_on=["council", "imd_quintile"],
+            how="left",
+        )
+        .groupby("user_home_location", group_keys=True)
+        .apply(
+            lambda group: group.assign(
+                data_percent=group["users"] / group["users"].sum()
+            )
+        )
+        .reset_index(drop=True)
+        .assign(imd_weight=lambda df: df["Percentage"] / df["data_percent"])
+        .groupby("user_home_location", group_keys=True)
+        .apply(
+            lambda group: group.assign(
+                total_pop=group["Total"].sum(), data_pop=group["users"].sum()
+            )
+        )
+        .reset_index(drop=True)
+        .assign(
+            council_weight=lambda df: (df["total_pop"] / df["Total"].sum())
+            / (df["data_pop"] / df["users"].sum())
+        )
+    )
+
+    annual_users = annual_users[  # Rearranging Columns
+        [
+            "council",
+            "imd_quintile",
+            "users",
+            "Total",
+            "Percentage",
+            "data_percent",
+            "total_pop",
+            "data_pop",
+            "imd_weight",
+            "council_weight",
+        ]
+    ]
+
+    annual_users = annual_users.rename(
+        columns={
+            "users": "data_user_imd_level",
+            "Total": "adult_pop_imd_level",
+            "percentage": "adult_pop_percentage_imd_level",
+            "data_percent": "data_users_percentage_imd_level",
+            "total_pop": "adult_pop_council_level",
+            "data_pop": "data_users_council_level",
+        }
+    )
+
+    od_trip_df = od_trip_df.merge(
+        annual_users[["council", "imd_quintile", "imd_weight", "council_weight"]],
+        how="left",
+        left_on=["user_home_location", "imd_quintile"],
+        right_on=["council", "imd_quintile"],
+        suffixes=["_od", "_anu"],
+    )
+    od_trip_df["imd_weight"] = od_trip_df["imd_weight"].fillna(1)
+    od_trip_df["council_weight"] = od_trip_df["council_weight"].fillna(1)
+    od_trip_df["activity_weight"] = (
+        365 / od_trip_df["total_active_days"]
+    )  # Activity weight = 365 (total days in a year) / number of active days
+    return od_trip_df
