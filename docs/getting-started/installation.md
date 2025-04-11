@@ -1,18 +1,4 @@
-<p align="center">
-  <img src="../../assets/meowmotion_logo.png" alt="MeowMotion Logo" width="120"/>
-</p>
-
-<p align="center">
-  <strong>MeowMotion</strong><br>
-  <em>Detecting Trips, OD Matrices, and Transport Mode from GPS Data</em>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/python-3.11-blue.svg" alt="Python 3.11">
-  <img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT">
-</p>
-
+<img src="../../assets/meowmotion_logo.png" alt="MeowMotion Logo" width="250"/><br>
 # 📦 Installation Guide
 
 
