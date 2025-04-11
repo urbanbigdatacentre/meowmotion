@@ -163,14 +163,16 @@ if __name__ == "__main__":
     activity_stats_path = (
         "U:\\Projects\\Huq\\Faraz\\final_OD_work_v2\\Glasgow\\2019\\activity_stats"
     )
-    act_stat_files = [
-        f"{activity_stats_path}/{f}" for f in os.listdir(activity_stats_path)
-    ]
-
+    hldf_file = (
+        "U:\\Projects\\Huq\\Faraz\\huq_city_data\\homeResults\\Glasgow_2019_results.csv"
+    )
     output_dir = "U:\\Projects\\Huq\\Faraz\\package_testing"
     org_loc_cols = ("org_lng", "org_lat")
     dest_loc_cols = ("dest_lng", "dest_lat")
     cpu_cores = 12
+    act_stat_files = [
+        f"{activity_stats_path}/{f}" for f in os.listdir(activity_stats_path)
+    ]
 
     trip_df = pd.read_csv(
         trip_file,
@@ -188,10 +190,13 @@ if __name__ == "__main__":
             active_day_df.groupby("uid")["total_active_days"].sum().reset_index()
         )
 
+    hldf = pd.read_csv(hldf_file)
+
     generateOD(
         trip_df=trip_df,
         shape=shape,
         active_day_df=active_day_df,
+        hldf=hldf,
         org_loc_cols=org_loc_cols,
         dest_loc_cols=dest_loc_cols,
         output_dir=output_dir,
