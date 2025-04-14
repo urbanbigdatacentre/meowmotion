@@ -4,6 +4,7 @@ import json
 import os
 import zipfile
 from datetime import datetime
+from multiprocessing import Pool, cpu_count
 from os.path import join
 
 import geopandas as gpd
@@ -51,7 +52,30 @@ def readJsonFiles(root: str, month_file: str) -> pd.DataFrame:
     return df
 
 
-def getFilteredData(traj_df: TrajDataFrame, impr_acc: int) -> TrajDataFrame:
+def getFilteredData(
+    df: pd.DataFrame, impr_acc: int = 100, cpu_cores: int = max(1, int(cpu_count() / 2))
+) -> TrajDataFrame:
+    print(f"{datetime.now()}: Filtering data based on impression accuracy={impr_acc}")
+    print(f"{datetime.now()}: Creating buckets for multiprocessing")
+    tdf_collection = getLoadBalancedBuckets(df, cpu_cores)
+    args = [(tdf, impr_acc) for tdf in tdf_collection]
+    print(f"{datetime.now()}: Filtering Started...")
+    with Pool(cpu_cores) as pool:
+        results = pool.starmap(
+            filterData, args
+        )  # Filtering the data based on Impression Accuracy and Speed between GPS points
+
+    del tdf_collection  # Deleting the data to free up the memory
+    traj_df = pd.concat(
+        [*results]
+    )  # Concatinating the filtered data from all the processes
+    del results  # Deleting the results to free up the memory
+    print(f"{datetime.now()}: Filtering Finished\n\n\n")
+
+    return traj_df
+
+
+def filterData(df: pd.DataFrame, impr_acc: int) -> TrajDataFrame:
     """
     Description:
         This function filters the trajectory data based on the accuracy of impressions and speed between consecutive GPS points.
@@ -66,10 +90,12 @@ def getFilteredData(traj_df: TrajDataFrame, impr_acc: int) -> TrajDataFrame:
     Example:
         >>> getFilteredData(traj_df, impr_acc=100)
     """
-
+    traj_df = TrajDataFrame(
+        df, latitude="lat", longitude="lng", user_id="uid", datetime="datetime"
+    )
     print(f"Filtering based on impression accuracy={impr_acc}")
     bf = traj_df.shape[0]
-    traj_df = traj_df[traj_df.impression_acc <= impr_acc]
+    traj_df = traj_df[traj_df["impression_acc"] <= impr_acc]
     af = traj_df.shape[0]
 
     print(

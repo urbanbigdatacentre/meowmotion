@@ -18,8 +18,30 @@ Ensure you have a GPS data file (e.g., `sample_gps_data.csv`) with the following
 | lng            | Longitude                        |
 | impression_acc |  GPS point accuracy in meters    |
 
-Example row:
+📌 **Example snippet (from Geolife Data):**
 
 ```csv
 uid,datetime,lat,lng,impression_acc
-123,2023-05-01T08:00:00Z,51.5074,-0.1278,55.5
+000,2008-10-23 02:53:04,39.984702,116.318417,99
+000,2008-10-23 02:53:10,39.984683,116.31845,5
+000,2008-10-23 02:53:15,39.984686,116.318417,99
+000,2008-10-23 02:53:20,39.984688,116.318385,99
+000,2008-10-23 02:53:25,39.984655,116.318263,99
+000,2008-10-23 02:53:30,39.984611,116.318026,5
+```
+
+
+## 🧭 Step 2: Stop Nodes and Trip Generation
+
+```bash
+import pandas as pd
+from meowmotion.trip_gen import TripDetector
+
+# Load GPS data
+df = pd.read_csv("sample_gps_data.csv")
+
+# Detect trips
+trip_detector = TripDetector()
+trips = trip_detector.run(df)
+
+```

@@ -11,3 +11,4 @@ data/
 *.h5
 site/
 .vscode/
+test_package.py
