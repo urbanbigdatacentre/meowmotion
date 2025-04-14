@@ -6,6 +6,7 @@ import zipfile
 from datetime import datetime
 from multiprocessing import Pool, cpu_count
 from os.path import join
+from typing import Optional
 
 import geopandas as gpd
 import pandas as pd
@@ -53,12 +54,39 @@ def readJsonFiles(root: str, month_file: str) -> pd.DataFrame:
 
 
 def getFilteredData(
-    df: pd.DataFrame, impr_acc: int = 100, cpu_cores: int = max(1, int(cpu_count() / 2))
+    df: pd.DataFrame,
+    impr_acc: Optional[int] = 100,
+    cpu_cores: Optional[int] = max(1, int(cpu_count() / 2)),
 ) -> TrajDataFrame:
+    """
+    Description:
+        This function filters trajectory data based on two criteria:
+         1. Impression accuracy (removing records above a specified accuracy threshold).
+         2. Speed between consecutive GPS points (removing unrealistically fast points).
+
+        To improve performance, the data is split into multiple buckets (using getLoadBalancedBuckets)
+        and each bucket is processed in parallel using Python's multiprocessing.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame containing trajectory data with columns
+            ['uid', 'datetime', 'lat', 'lng', 'impression_acc'].
+        impr_acc (int, optional): The impression accuracy threshold. Defaults to 100.
+        cpu_cores (int, optional): The number of CPU cores to utilize for multiprocessing.
+            Defaults to half the available cores (at least 1).
+
+    Returns:
+        TrajDataFrame: A TrajDataFrame containing the filtered trajectory data.
+
+    Example:
+        >>> from meowmotion.process_data import getFilteredData
+        >>> import pandas as pd
+        >>> df = pd.read_csv('path/to/trajectory_data.csv', parse_dates=['datetime'])
+        >>> filtered_data = getFilteredData(df, impr_acc=50, cpu_cores=4)
+    """
     print(f"{datetime.now()}: Filtering data based on impression accuracy={impr_acc}")
     print(f"{datetime.now()}: Creating buckets for multiprocessing")
     tdf_collection = getLoadBalancedBuckets(df, cpu_cores)
-    args = [(tdf, impr_acc) for tdf in tdf_collection]
+    args = [(tdf, impr_acc) for tdf in tdf_collection if not tdf.empty]
     print(f"{datetime.now()}: Filtering Started...")
     with Pool(cpu_cores) as pool:
         results = pool.starmap(
@@ -76,20 +104,7 @@ def getFilteredData(
 
 
 def filterData(df: pd.DataFrame, impr_acc: int) -> TrajDataFrame:
-    """
-    Description:
-        This function filters the trajectory data based on the accuracy of impressions and speed between consecutive GPS points.
 
-    Parameters:
-        traj_df (TrajDataFrame): Trajectory DataFrame containing the data to be filtered.
-        impr_acc (int): Impression accuracy threshold.
-
-    Returns:
-        TrajDataFrame: Filtered trajectory data.
-
-    Example:
-        >>> getFilteredData(traj_df, impr_acc=100)
-    """
     traj_df = TrajDataFrame(
         df, latitude="lat", longitude="lng", user_id="uid", datetime="datetime"
     )
@@ -98,14 +113,21 @@ def filterData(df: pd.DataFrame, impr_acc: int) -> TrajDataFrame:
     traj_df = traj_df[traj_df["impression_acc"] <= impr_acc]
     af = traj_df.shape[0]
 
-    print(
-        f"""
-    Records before accuracy filtering: {bf}
-    Records after accuracy filtering: {af}
-    Difference: {bf-af}
-    Percentage of deleted record: {round(((bf-af)/bf)*100)}%
-    """
-    )
+    try:
+        print(
+            f"""
+        Records before impression accuracy filtering: {bf}
+        Records after impression accuracy filtering: {af}
+        Difference: {bf-af}
+        Percentage of deleted record after impression accuracy filter: {round(((bf-af)/bf)*100)}%
+        """
+        )
+    except ZeroDivisionError:
+        raise ValueError(
+            """
+            Cannot calculate percentage of deleted records as no records were found before impression accuracy filtering.
+            """
+        )
 
     # Filtering based on the speed
 
@@ -113,14 +135,21 @@ def filterData(df: pd.DataFrame, impr_acc: int) -> TrajDataFrame:
 
     traj_df = filtering.filter(traj_df, max_speed_kmh=200)
 
-    print(
-        f"""
-    Records before speed filtering: {af}
-    Records after speed filtering: {traj_df.shape[0]}
-    Difference: {af-traj_df.shape[0]}
-    Percentage of deleted record: {round(((af-traj_df.shape[0])/af)*100,2)}%
-    """
-    )
+    try:
+        print(
+            f"""
+        Records before speed filtering: {af}
+        Records after speed filtering: {traj_df.shape[0]}
+        Difference: {af-traj_df.shape[0]}
+        Percentage of deleted record after speed filtering: {round(((af-traj_df.shape[0])/af)*100,2)}%
+        """
+        )
+    except ZeroDivisionError:
+        raise ValueError(
+            """
+            Cannot calculate percentage of deleted records as no records were found before speed filtering.
+            """
+        )
     return traj_df
 
 
@@ -183,7 +212,10 @@ def getLoadBalancedBuckets(tdf: pd.DataFrame, bucket_size: int) -> list:
         []
     )  # List of collection of DataFrames. This list will contain the number of DataFrames=number of CPU Cores. Each DataFrame will be processed in a seperate core as a seperate process.
     for i in range(1, bucket_size + 1):
-        tdf_collection.append(tdf[tdf["uid"].isin(buckets[i])].copy())
+        # tdf_collection.append(tdf[tdf["uid"].isin(buckets[i])].copy())
+        tdf[tdf["uid"].isin(buckets[i])].copy()
+        if not tdf.empty:
+            tdf_collection.append(tdf[tdf["uid"].isin(buckets[i])].copy())
     return tdf_collection
 
 
