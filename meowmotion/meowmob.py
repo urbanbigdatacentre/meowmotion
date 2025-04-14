@@ -13,7 +13,12 @@ from tqdm import tqdm
 from meowmotion.process_data import getLoadBalancedBuckets, saveFile, spatialJoin
 
 
-def getStopNodes(tdf: TrajDataFrame, time_th: int, radius: int) -> pd.DataFrame:
+def getStopNodes(
+    tdf: TrajDataFrame,
+    time_th: int = 5,
+    radius: int = 500,
+    cpu_cores=max(1, int(cpu_count() / 2)),
+) -> TrajDataFrame:
     """
 
     This function takes a TrajDataFrame and returns the stop nodes data. The stop nodes data contains the following columns:
@@ -31,7 +36,21 @@ def getStopNodes(tdf: TrajDataFrame, time_th: int, radius: int) -> pd.DataFrame:
     Example:
         >>> getStopNodes(tdf, time_th, radius)
     """
+    tdf = tdf.reset_index(drop=True)
+    tdf_collection = getLoadBalancedBuckets(tdf, cpu_cores)
+    print(f"{datetime.now()}: Stop Node Detection Started")
+    args = [(df, time_th, radius) for df in tdf_collection]
+    with Pool(cpu_cores) as pool:
+        results = pool.starmap(stopNodes, args)
 
+    del tdf_collection  # Deleting the data to free up the memory
+    stdf = pd.concat([*results])
+    del results  # Deleting the results to free up the memory
+    print(f"{datetime.now()} Stop Node Detection Completed\n")
+    return stdf
+
+
+def stopNodes(tdf: TrajDataFrame, time_th: int, radius: int) -> TrajDataFrame:
     return detection.stay_locations(
         tdf,
         minutes_for_a_stop=time_th,
