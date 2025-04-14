@@ -157,6 +157,67 @@ def fetchDataFromRaw(record: pd.Series, raw_df: TrajDataFrame) -> list:
     return temp
 
 
+def getActivityStats(
+    df: pd.DataFrame, output_dir: str, cpu_cores: int = max(1, int(cpu_count() / 2))
+) -> pd.DataFrame:
+    """
+    Computes the number of active days per user for each calendar month and saves the
+    results to a CSV file. This monthly granularity supports fine-grained user activity
+    analysis.
+
+    Note:
+        - This function is designed to produce **per-month activity stats** from yearly data.
+        - If you are using the output of this function for **yearly OD generation**, make sure to
+          **aggregate total_active_days across all months per user** before passing it to
+          `generateOD()`.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame with at least `uid` and `datetime` columns.
+        output_dir (str): Directory path where the output CSV will be saved.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the number of active days per user per month.
+
+    Example:
+        >>> activity_df = getActivityStats(df, output_dir="./stats")
+        >>> activity_df.head()
+           uid  month  total_active_days
+        0    1      1                 10
+        1    1      2                 12
+        2    2      1                  8
+    """
+    print(f"{datetime.now()}: Generating Activity Stats")
+    init_unique_users = df["uid"].nunique()
+    tdf_collection = getLoadBalancedBuckets(df, cpu_cores)
+    with Pool(cpu_cores) as p:
+        df = p.map(activityStats, tdf_collection)
+
+    df = pd.concat(df, ignore_index=True)
+    df = df.reset_index(drop=True)
+    final_unique_users = df["uid"].nunique()
+    assert (
+        init_unique_users == final_unique_users
+    ), "Something is wrong..data Loss in Activity Stats Generation"
+    print(f"{datetime.now()}: Activity Stats generated.")
+    print(f"{datetime.now()}: Saving Activity Stats")
+    saveFile(path=output_dir, fname="activity_stats.csv", df=df)
+    return df
+
+
+def activityStats(df: pd.DataFrame) -> pd.DataFrame:
+    df["datetime"] = pd.to_datetime(df["datetime"])
+    df["month"] = df["datetime"].dt.month
+    df["day"] = df["datetime"].dt.day
+    df = (
+        df.drop_duplicates(subset=["uid", "month", "day"], keep="first")
+        .groupby(["uid", "month"])["day"]
+        .size()
+        .reset_index()
+        .rename(columns={"day": "total_active_days"})
+    )
+    return df
+
+
 def generateOD(
     trip_df: pd.DataFrame,
     shape: gpd.GeoDataFrame,

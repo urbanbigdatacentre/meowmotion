@@ -10,3 +10,4 @@ data/
 *.joblib
 *.h5
 site/
+.vscode/
