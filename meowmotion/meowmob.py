@@ -15,37 +15,51 @@ from meowmotion.process_data import getLoadBalancedBuckets, saveFile, spatialJoi
 
 def getStopNodes(
     tdf: TrajDataFrame,
-    time_th: int = 5,
-    radius: int = 500,
-    cpu_cores=max(1, int(cpu_count() / 2)),
-) -> TrajDataFrame:
+    time_th: Optional[int] = 5,
+    radius: Optional[int] = 500,
+    cpu_cores: Optional[int] = max(1, int(cpu_count() / 2)),
+) -> pd.DataFrame:
     """
+    Detect stop nodes from trajectory data in parallel using scikit-mobility's stay_locations.
 
-    This function takes a TrajDataFrame and returns the stop nodes data. The stop nodes data contains the following columns:
-    uid, org_lat, org_lng, org_arival_time, org_leaving_time, dest_lat, dest_lng, dest_arival_time.
-    This function uses the stay_locations function from the skmob library to detect the stop nodes.
+    This function splits the input TrajDataFrame across multiple CPU cores (via getLoadBalancedBuckets),
+    detects stops on each chunk using the stay_locations function, then merges the results back together.
+    After detection, latitude and longitude columns are renamed to "org_lat" and "org_lng" in the final
+    returned DataFrame.
 
     Args:
-        tdf (TrajDataFrame): TrajDataFrame containing the trajectory data.
-        time_th (int): Time threshold in minutes.
-        radius (int): Radius in meters.
+        tdf (TrajDataFrame):
+            Input trajectory data with columns at least ["uid", "datetime", "lat", "lng"].
+        time_th (int, optional):
+            Time threshold (in minutes) used by stay_locations to detect a stop. Defaults to 5.
+        radius (int, optional):
+            Spatial radius (in meters) within which points are considered part of the same stop. Defaults to 500.
+        cpu_cores (int, optional):
+            Number of CPU cores to use for parallel processing. Defaults to half the available cores (at least 1).
 
     Returns:
-        pd.DataFrame: Stop nodes data.
+        pd.DataFrame:
+            A DataFrame representing the detected stop nodes. The main columns include:
+            "uid", "org_lat", "org_lng", "datetime" (representing arrival time), "leaving_datetime",
+            and any additional columns returned by stay_locations.
 
     Example:
-        >>> getStopNodes(tdf, time_th, radius)
+        >>> from meowmotion.meowmob import getStopNodes
+        >>> stops_df = getStopNodes(tdf, time_th=10, radius=1000, cpu_cores=4)
+        >>> print(stops_df.head())
     """
     tdf = tdf.reset_index(drop=True)
     tdf_collection = getLoadBalancedBuckets(tdf, cpu_cores)
     print(f"{datetime.now()}: Stop Node Detection Started")
-    args = [(df, time_th, radius) for df in tdf_collection]
+    args = [(df, time_th, radius) for df in tdf_collection if not df.empty]
     with Pool(cpu_cores) as pool:
         results = pool.starmap(stopNodes, args)
 
     del tdf_collection  # Deleting the data to free up the memory
     stdf = pd.concat([*results])
     del results  # Deleting the results to free up the memory
+    stdf.rename(columns={"lat": "org_lat", "lng": "org_lng"}, inplace=True)
+    stdf = pd.DataFrame(stdf)
     print(f"{datetime.now()} Stop Node Detection Completed\n")
     return stdf
 
@@ -59,30 +73,82 @@ def stopNodes(tdf: TrajDataFrame, time_th: int, radius: int) -> TrajDataFrame:
     )
 
 
-def processFlowGenration(stdf: pd.DataFrame, raw_df: TrajDataFrame) -> pd.DataFrame:
+def processFlowGenration(
+    stdf: pd.DataFrame,
+    raw_df: pd.DataFrame,
+    cpu_cores: int = max(1, int(cpu_count() / 2)),
+) -> pd.DataFrame:
     """
+    Generate flow data from stop nodes using parallel processing.
 
-    This function generates the flow data from the stop nodes data. It takes the stop nodes data and the raw data as input and returns the flow data.
-    The flow data contains the following columns:
-    uid, org_lat, org_lng, org_arival_time, org_leaving_time, dest_lat, dest_lng, dest_arival_time, stay_points, trip_points, trip_time, stay_duration, observed_stay_duration
-    The function uses the following steps to generate the flow data:
-        1. It takes the stop nodes data and the raw data as input.
-        2. It iterates through the stop nodes data and for each row, it fetches the data from the raw data.
-        3. It appends the data to a list.
-        4. It converts the list to a DataFrame.
-        5. It returns the DataFrame.
+    This function takes two data sources:
+     1. `stdf`: A DataFrame of stop nodes, which must contain columns such as
+         "uid", "datetime", "org_lat", "org_lng", and the "dest_*" fields added here.
+     2. `raw_df`: The underlying trajectory data (with columns like "uid", "datetime",
+         "lat", "lng") from which the detailed trip segments and stay points are extracted.
+
+    The function first prepares `stdf` by assigning "dest_at", "dest_lat", and "dest_lng"
+    (the next stop in sequence for each user), then uses `getLoadBalancedBuckets` to split
+    the DataFrame for multiprocessing. For each split/bucket, it calls `flowGenration(...)`
+    in parallel to build the trip segments and stay details from the raw data. Finally,
+    it concatenates the partial results and returns a single DataFrame of flow data.
+
+    Columns in the final flow DataFrame typically include:
+      - "uid"
+      - "org_lat", "org_lng", "org_arival_time", "org_leaving_time"
+      - "dest_lat", "dest_lng", "dest_arival_time"
+      - "stay_points", "trip_points"
+      - "trip_time", "stay_duration", "observed_stay_duration"
+      (and any other columns you choose to include in `flowGenration`)
 
     Args:
-        stdf (pd.DataFrame): Stop nodes data.
-        raw_df (TrajDataFrame): Raw data.
+        stdf (pd.DataFrame): DataFrame containing stop nodes. Must have columns such as
+            "uid", "datetime", "org_lat", "org_lng". Additional columns will be created
+            or renamed (e.g., "dest_lat", "dest_lng", "dest_at").
+        raw_df (pd.DataFrame): The raw trajectory data with columns like
+            "uid", "datetime", "lat", "lng". Used to extract trip details.
+        cpu_cores (int, optional): Number of CPU cores for multiprocessing.
+            Defaults to half of available cores, at minimum 1.
 
     Returns:
-        pd.DataFrame: Flow data.
+        pd.DataFrame: A concatenation of all flows generated in parallel.
+        Each row represents a trip between one stop node and the next.
 
     Example:
-        >>> processFlowGenration(stdf, raw_df)
-
+        >>> from meowmotion.meowmob import getStopNodes, processFlowGenration
+        >>> stop_nodes_df = getStopNodes(traj_df)
+        >>> flow_data = processFlowGenration(stop_nodes_df, raw_df, cpu_cores=4)
+        >>> print(flow_data.head())
     """
+
+    stdf["dest_at"] = stdf.groupby("uid")["datetime"].transform(lambda x: x.shift(-1))
+    stdf["dest_lat"] = stdf.groupby("uid")["org_lat"].transform(lambda x: x.shift(-1))
+    stdf["dest_lng"] = stdf.groupby("uid")["org_lng"].transform(lambda x: x.shift(-1))
+    print(stdf.head())  # Printing the first 5 rows of the stop nodes data
+    stdf = stdf.dropna(subset=["dest_lat"])
+    tdf_collection = getLoadBalancedBuckets(stdf, cpu_cores)
+    print(f"{datetime.now()}: Generating args")
+    args = []
+    for tdf in tdf_collection:
+        temp_raw_df = raw_df[raw_df["uid"].isin(tdf["uid"].unique())].copy()
+        temp_raw_df.set_index(["uid", "datetime"], inplace=True)
+        temp_raw_df.sort_index(inplace=True)
+        args.append((tdf, temp_raw_df))
+    del tdf_collection
+    print(f"{datetime.now()}: args Generation Completed")
+    print(f"{datetime.now()}: Flow Generation Started\n\n")
+    with Pool(cpu_cores) as pool:
+        results = pool.starmap(flowGenration, args)
+
+    flow_df = pd.concat(
+        [*results]
+    )  # Concatinating the flow data from all the processes
+    del results  # Deleting the results to free up the memory
+    print(f"{datetime.now()} Flow Generation Completed\n")
+    return flow_df
+
+
+def flowGenration(stdf: pd.DataFrame, raw_df: TrajDataFrame) -> pd.DataFrame:
 
     flow_df = []
     cols = [
@@ -110,23 +176,6 @@ def processFlowGenration(stdf: pd.DataFrame, raw_df: TrajDataFrame) -> pd.DataFr
 
 
 def fetchDataFromRaw(record: pd.Series, raw_df: TrajDataFrame) -> list:
-    """
-
-    This function fetches the data from the raw data based on the stop nodes data. It takes the stop nodes data and the raw data as input and returns the flow data.
-    The flow data contains the following columns:
-    uid, org_lat, org_lng, org_arival_time, org_leaving_time, dest_lat, dest_lng, dest_arival_time, stay_points, trip_points, trip_time, stay_duration, observed_stay_duration
-
-    Args:
-        record (pd.Series): Stop nodes data.
-        raw_df (TrajDataFrame): Raw data.
-
-    Returns:
-        list: Flow data.
-
-    Example:
-        >>> fetchDataFromRaw(record, raw_df)
-    """
-
     org_at = record["datetime"]  # Origin arriving time
     org_lt = record["leaving_datetime"]  # origin leaving time
     dest_at = record["dest_at"]  # destination arriving time
@@ -180,25 +229,43 @@ def getActivityStats(
     df: pd.DataFrame, output_dir: str, cpu_cores: int = max(1, int(cpu_count() / 2))
 ) -> pd.DataFrame:
     """
-    Computes the number of active days per user for each calendar month and saves the
-    results to a CSV file. This monthly granularity supports fine-grained user activity
-    analysis.
+    Compute per-month user activity (number of active days) in parallel and save to disk.
 
-    Note:
-        - This function is designed to produce **per-month activity stats** from yearly data.
-        - If you are using the output of this function for **yearly OD generation**, make sure to
-          **aggregate total_active_days across all months per user** before passing it to
-          `generateOD()`.
+    This function partitions the input DataFrame into load-balanced buckets (based on
+    unique users), processes each bucket in parallel, and then combines the results.
+    Each row in the returned DataFrame corresponds to a specific user and month, with
+    a column indicating how many days that user was active during that month.
+
+    Key Points:
+    - Requires at least the columns "uid" and "datetime" in the input DataFrame.
+    - Uses multiprocessing to handle large datasets efficiently, controlled by `cpu_cores`.
+    - Saves the final aggregated statistics to "activity_stats.csv" in the provided output directory.
+    - The returned DataFrame has columns:
+        * "uid"
+        * "month"
+        * "total_active_days"  (number of unique days in that month with at least one record)
+    - Designed to produce monthly-level stats from typically yearly data. If you need
+      a yearly total, aggregate "total_active_days" across all months per user before
+      using these stats in any further steps (like OD generation).
 
     Args:
-        df (pd.DataFrame): Input DataFrame with at least `uid` and `datetime` columns.
-        output_dir (str): Directory path where the output CSV will be saved.
+        df (pd.DataFrame):
+            The input DataFrame containing at least the columns "uid" and "datetime".
+        output_dir (str):
+            Path where the resulting "activity_stats.csv" file will be saved.
+        cpu_cores (int, optional):
+            Number of CPU cores to use for multiprocessing. Defaults to half of the
+            available cores (at least 1).
 
     Returns:
-        pd.DataFrame: DataFrame containing the number of active days per user per month.
+        pd.DataFrame:
+            A DataFrame of monthly user activity counts, with columns ["uid", "month",
+            "total_active_days"].
 
     Example:
-        >>> activity_df = getActivityStats(df, output_dir="./stats")
+        >>> from meowmotion.meowmob import getActivityStats
+        >>> # Suppose df has columns: uid, datetime, lat, lng, etc.
+        >>> activity_df = getActivityStats(df, output_dir="./stats", cpu_cores=4)
         >>> activity_df.head()
            uid  month  total_active_days
         0    1      1                 10
@@ -251,32 +318,104 @@ def generateOD(
     od_type: Optional[List[str]] = ["type3"],
 ) -> List[pd.DataFrame]:
     """
-    Generates weighted Origin-Destination (OD) matrices from raw trip data, enriched with
-    demographic and activity-based weights. Also optionally saves intermediate processed
-    products like stay points and trip points.
+    Generate weighted Origin-Destination (OD) matrices from trip-level data, using
+    spatial joins, demographic weights, and user activity data. This function
+    leverages multiprocessing to handle large datasets efficiently and can produce
+    multiple types of OD matrices in a single pass.
+
+    Key Steps:
+    1. **Shape File Preparation**:
+       - Ensures the provided `shape` GeoDataFrame uses EPSG:4326.
+       - Pre-builds a spatial index for quicker joins.
+
+    2. **Spatial Joins**:
+       - Splits `trip_df` into load-balanced buckets (via `getLoadBalancedBuckets`)
+         for parallel processing.
+       - Spatially joins origins and destinations against the `shape` to label each
+         trip with "origin_geo_code" and "destination_geo_code".
+
+    3. **Filtering**:
+       - Removes trips longer than 24 hours and stay durations over 3600 minutes.
+       - Drops records without valid origin or destination geo-codes.
+
+    4. **Disclosure Analysis**:
+       - Aggregates trip counts by origin-destination pairs and user IDs to help
+         identify any potential risk of user-level data disclosure.
+       - Saves results in "disclosure_analysis_.csv".
+
+    5. **Trip ID & Metrics**:
+       - Assigns incremental `trip_id`s per user.
+       - Computes total trips per user and merges with `active_day_df` to
+         calculate "trips per active day" (TPAD).
+
+    6. **Adding Demographic Data**:
+       - Merges each record with user-level IMD quintiles and council info
+         from `hldf`.
+       - Adds placeholder columns for travel mode if needed.
+
+    7. **Optional Saving of Intermediate Products** (if `save_drived_products=True`):
+       - Saves non-aggregated flows, aggregated flows, stay points, and trip points
+         in separate CSV files for further analysis.
+
+    8. **Final OD Matrix Generation**:
+       - Filters out infrequent or low-activity users based on active days and TPAD.
+       - For each OD type in `od_type` (e.g., "type1", "type2", "type3", "type4"),
+         selects trips matching the time-of-day/week criteria.
+       - Applies weighting (`getWeights`) to scale user trip counts to
+         population-level estimates.
+       - Aggregates trips, then calculates weighted trips with different weighting
+         factors (activity, council, IMD) for each origin-destination pair.
+       - Saves the resulting OD matrix as a CSV (e.g., "type3_od.csv") and collects
+         it in a list of OD DataFrames to be returned.
 
     Args:
-        trip_df (pd.DataFrame): Trip-level data including timestamps, user ID, and coordinates.
-        shape (gpd.GeoDataFrame): Geographic boundaries used for spatial joins (e.g., MSOAs).
-        active_day_df (pd.DataFrame): Number of active days per user.
-        hldf (pd.DataFrame): User home location and IMD/council information.
-        adult_population (pd.DataFrame): Adult population breakdown by council and IMD quintile.
-        org_loc_cols (Tuple[str, str]): Column names for origin longitude and latitude.
-        dest_loc_cols (Tuple[str, str]): Column names for destination longitude and latitude.
-        output_dir (str): Directory path to save output files.
-        cpu_cores (int, optional): Number of CPU cores to use. Defaults to half of available CPUs.
-        save_drived_products (bool, optional): Whether to save intermediate datasets. Defaults to True.
-        od_type (List[str], optional): Types of OD matrices to generate. Options include:
+        trip_df (pd.DataFrame):
+            The main trip-level DataFrame. Must contain columns indicating user IDs,
+            timestamps (arrivals/departures), plus the origin/destination lat-lng
+            pairs (specified by `org_loc_cols` and `dest_loc_cols`).
+        shape (gpd.GeoDataFrame):
+            A GeoDataFrame containing the geographic boundaries (e.g., MSOA or LSOA).
+            Must have a valid geometry column. This is used for spatial joins.
+        active_day_df (pd.DataFrame):
+            DataFrame with columns ["uid", "total_active_days"], representing how
+            many days each user was active.
+        hldf (pd.DataFrame):
+            DataFrame mapping user IDs to home council and IMD quintile info.
+        adult_population (pd.DataFrame):
+            Contains population counts broken down by council and IMD quintile.
+        org_loc_cols (Tuple[str, str]):
+            Column names for the origin's (longitude, latitude).
+        dest_loc_cols (Tuple[str, str]):
+            Column names for the destination's (longitude, latitude).
+        output_dir (str):
+            Directory path where all output files will be saved.
+        cpu_cores (int, optional):
+            Number of CPU cores to use for parallel processing. Defaults to half
+            of available cores (at least 1).
+        save_drived_products (bool, optional):
+            Whether to save intermediate or "derived" datasets (e.g., stay points).
+            Defaults to True.
+        od_type (List[str], optional):
+            Which OD matrix types to produce. Recognized values:
             - "type1": AM Peak Weekdays (7am–10am)
             - "type2": PM Peak Weekdays (4pm–7pm)
-            - "type3": All Trips
-            - "type4": All Trips excluding type1 and type2
-            Defaults to ["type3"].
+            - "type3": All Trips (default)
+            - "type4": All Trips excluding type1 + type2
+            Passing multiple values produces multiple OD DataFrames. Defaults to ["type3"].
 
     Returns:
-        List[pd.DataFrame]: List of OD matrix DataFrames for each type in `od_type`.
+        List[pd.DataFrame]:
+            A list of OD matrix DataFrames, one for each type listed in `od_type`.
+            Each DataFrame has columns like:
+            - "origin_geo_code", "destination_geo_code"
+            - "trips" (unweighted)
+            - "activity_weighted_trips"
+            - "council_weighted_trips"
+            - "act_cncl_weighted_trips" (combined weighting)
+            - "percentage" (percentage share of total trips)
 
     Example:
+        >>> from meowmotion.meowmob import generateOD
         >>> od_matrices = generateOD(
                 trip_df=trip_data,
                 shape=lsoa_shapes,
@@ -286,9 +425,10 @@ def generateOD(
                 org_loc_cols=('org_lng', 'org_lat'),
                 dest_loc_cols=('dest_lng', 'dest_lat'),
                 output_dir='./output',
+                cpu_cores=4,
                 od_type=["type3", "type1"]
             )
-        >>> print(od_matrices[0].head())
+        >>> print(od_matrices[0].head())  # OD matrix for "type3"
     """
 
     print(shape.crs)
