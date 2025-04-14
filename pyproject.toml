@@ -29,6 +29,7 @@ python-dotenv = "^1.0.1"
 pre-commit = "^4.1.0"
 fiona = "1.8.22"
 rtree = "^1.4.0"
+pytest = "^8.3.5"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
