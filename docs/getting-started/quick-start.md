@@ -123,10 +123,11 @@ generateOD(
 )
 ```
 This produces four types of OD matrices using demographic and activity-based weights:
- - Type 1: AM peak (7–10am)
- - Type 2: PM peak (4–7pm)
- - Type 3: All-day
- - Type 4: Non-peak (Type 3 − Type 1 & 2)
+
+ - **Type 1:** AM peak (7–10am)
+ - **Type 2:** PM peak (4–7pm)
+ - **Type 3:** All-day
+ - **Type 4:** Non-peak (Type 3 − Type 1 & 2)
 
 ## ✅ You're Done!
 🎉 You've successfully completed the MeowMotion core pipeline!
