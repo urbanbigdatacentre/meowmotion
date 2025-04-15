@@ -1,6 +1,6 @@
 # 🚀 Quick Start
 
-Welcome to **MeowMotion**! This quick start guide walks you through detecting trips and predicting transport modes using sample GPS data — all in just a few lines of code.
+Welcome to **MeowMotion**! This quick start guide walks you through detecting trips and predicting transport modes using sample GPS data, all in just a few lines of code.
 
 > ⚠️ Make sure you've followed the [Installation Guide](https://faraz-m-awan.github.io/meowmotion/getting-started/installation/) before starting.
 
@@ -166,7 +166,7 @@ This shapefile defines the spatial resolution for OD matrix generation. You can 
 
 ### 🏠 2. Home Location File
 
-The **Home Location file** contains information about the detected home locations of users in the GPS dataset. These locations are identified using a **novel home detection method** that combines:
+The **Home Location file** contains information about the detected home locations of users in the GPS dataset. These locations are identified using a [**novel home detection method**](https://www.sciencedirect.com/science/article/pii/S0143622823001285) that combines:
 
 - **Active evening presence thresholds**, and
 - **UK residential building data**
@@ -175,6 +175,7 @@ This hybrid approach yields more accurate home location detection compared to tr
 
 > ℹ️ **Note:** The current version of MeowMotion **does not generate** this file.
 > You can request the home location dataset from the **UBDC Data Service**:
+>
 > 📧 `ubdc-dataservice@glasgow.ac.uk`
 
 ---
