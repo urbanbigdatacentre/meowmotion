@@ -8,10 +8,26 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/python-3.11-blue.svg" alt="Python 3.11">
-  <img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT">
+  <a href="https://www.python.org/downloads/release/python-311/">
+    <img src="https://img.shields.io/badge/python-3.11-blue.svg" alt="Python 3.11">
+  </a>
+  <a href="https://faraz-m-awan.github.io/meowmotion/">
+    <img src="https://img.shields.io/badge/docs-online-brightgreen.svg" alt="Documentation">
+  </a>
+  <a href="https://github.com/faraz-m-awan/meowmotion/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT">
+  </a>
+  <a href="https://www.ubdc.ac.uk/">
+    <img src="https://img.shields.io/badge/developed%20by-UBDC-blueviolet" alt="Developed by UBDC">
+  </a>
+  <!-- Optional: Build Status -->
+  <!--
+  <a href="https://github.com/faraz-m-awan/meowmotion/actions">
+    <img src="https://github.com/faraz-m-awan/meowmotion/actions/workflows/main.yml/badge.svg" alt="Build Status">
+  </a>
+  -->
 </p>
+
 
 # Welcome to MeowMotion 🐾
 
@@ -33,17 +49,17 @@ Whether you're working with mobile phone app data or other location sources, Meo
 - **Trip Generation**
   Creates trip data using detected stay points.
 
-- **Trip Scaling & OD Matrix Generation**  
+- **Trip Scaling & OD Matrix Generation**
 Reads generated trips and applies:
   - **Demographic-based user weighting** using external population/sample profiles.
   - **Novel activity-based weighting** based on users' activity in the data.
 
 Scales trips accordingly and produces **four different types of Origin-Destination (OD) matrices**, offering robust representations of mobility flows.
-  
-    - Type 1: AM peak weekdays (7 AM – 10 AM)  
-    - Type 2: PM peak weekdays (4 PM – 7 PM)  
-    - Type 3: All-day / All trips  
-    - Type 4: Type 3 minus (Type 1 + Type 2), i.e. non-peak OD flows  
+
+    - Type 1: AM peak weekdays (7 AM – 10 AM)
+    - Type 2: PM peak weekdays (4 PM – 7 PM)
+    - Type 3: All-day / All trips
+    - Type 4: Type 3 minus (Type 1 + Type 2), i.e. non-peak OD flows
 
 - **Trajectory Processing**
   Analyzes raw and trip data to produce:
