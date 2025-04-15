@@ -1,5 +1,4 @@
 import ast
-import json
 import os
 from datetime import datetime
 from multiprocessing import Pool, cpu_count
@@ -16,43 +15,69 @@ from tqdm import tqdm
 from meowmotion.process_data import getLoadBalancedBuckets, readJsonFiles
 
 
-def readTripData(year: int, city: str, data_dir: str) -> pd.DataFrame:
+def processTripData(
+    trip_point_df: pd.DataFrame, na_flow_df: pd.DataFrame, raw_df: pd.DataFrame
+) -> pd.DataFrame:
     """
-    Reads trip data for a given year and city, processes
-    trip points, and merges it with origin-destination flow
-    data to get the name of Origin and Destination.
+    Processes trip-level data by expanding stored trip-point coordinates, merging
+    in origin-destination flows, and then attaching timestamps from a raw dataset.
+    The result is a single DataFrame containing trip points (latitude, longitude, and
+    timestamps) and corresponding origin/destination information.
+
+    Key Steps:
+        1. Expands list-based trip points in `trip_point_df` into individual rows
+           for each (lat, lng) point.
+        2. Joins the expanded trip points to `na_flow_df` to retrieve origin,
+           destination, and timing fields.
+        3. Filters trips to ensure total travel time does not exceed 24 hours.
+        4. Merges `raw_df` to add precise timestamps for each (lat, lng) point and
+           ensures each point is within the trip's time window.
 
     Args:
-    - year (int): The year of the trip data.
-    - city (str): The name of the city for which the trip data
-    is being retrieved.
+        trip_point_df (pd.DataFrame):
+            Contains user IDs, trip IDs, and a column of list-based trip points.
+            Must have columns `["uid", "trip_id", "trip_points"]`.
+        na_flow_df (pd.DataFrame):
+            Non-aggregated OD flow data containing origin/destination coordinates
+            and timestamps (`org_leaving_time`, `dest_arival_time`, etc.).
+        raw_df (pd.DataFrame):
+            The raw dataset with columns `["uid", "datetime", "lat", "lng"]`, used
+            to match each trip point to a specific timestamp.
 
     Returns:
-    - pd.DataFrame: A DataFrame containing processed trip data
-    with latitude and longitude information for each trip point,
-    along with origin and destination coordinates.
+        pd.DataFrame: A cleaned and merged DataFrame with columns for each trip's
+        user ID, trip ID, origin/destination coordinates, and per-point latitude,
+        longitude, and timestamps.
 
     Example:
-    >>> df = readTripData(2023, "London")
-    >>> print(df.head())
+        >>> # Suppose you already have three DataFrames: trip_point_df, na_flow_df, raw_df
+        >>> result_df = processTripData(trip_point_df, na_flow_df, raw_df)
+        >>> print(result_df.head())
+          uid  trip_id       lat       lng       datetime  org_lat  org_lng  ...
+        0   1       10  12.9716  77.59460  2023-01-01 ...   12.970  77.5940  ...
+        1   1       10  12.9720  77.59470  2023-01-01 ...   12.970  77.5940  ...
+        ...
+
     """
 
-    trip_file_path = f"{data_dir}/{city}/{year}/trip_points"
-    trip_df = pd.read_csv(f"{trip_file_path}/trip_points_500m_{year}.csv")
-    trip_df["trip_points"] = trip_df["trip_points"].apply(ast.literal_eval)
-    trip_df = trip_df.explode("trip_points")
-    trip_df.dropna(subset=["trip_points"], inplace=True)
-    trip_df[["lat", "lng"]] = pd.DataFrame(
-        trip_df["trip_points"].tolist(), index=trip_df.index
+    # trip_file_path = f"{data_dir}/{city}/{year}/trip_points"
+    # trip_point_df = pd.read_csv(f"{trip_file_path}/trip_points_500m_{year}.csv")
+    trip_point_df["trip_points"] = trip_point_df["trip_points"].apply(ast.literal_eval)
+    trip_point_df = trip_point_df.explode("trip_points")
+    trip_point_df.dropna(subset=["trip_points"], inplace=True)
+    trip_point_df[["lat", "lng"]] = pd.DataFrame(
+        trip_point_df["trip_points"].tolist(), index=trip_point_df.index
     )
-    trip_df.drop(columns=["trip_points"], inplace=True)
-    na_flows_file_path = f"{data_dir}/{city}/{year}/na_flows"
-    tdf = pd.read_csv(na_flows_file_path + f"/na_flows_500m_{year}.csv")
-    tdf["org_arival_time"] = pd.to_datetime(tdf["org_arival_time"])
-    tdf["org_leaving_time"] = pd.to_datetime(tdf["org_leaving_time"])
-    tdf["dest_arival_time"] = pd.to_datetime(tdf["dest_arival_time"])
-    trip_df = trip_df.merge(
-        tdf[
+    trip_point_df.drop(columns=["trip_points"], inplace=True)
+
+    # na_flows_file_path = f"{data_dir}/{city}/{year}/na_flows"
+    # tdf = pd.read_csv(na_flows_file_path + f"/na_flows_500m_{year}.csv")
+
+    na_flow_df["org_arival_time"] = pd.to_datetime(na_flow_df["org_arival_time"])
+    na_flow_df["org_leaving_time"] = pd.to_datetime(na_flow_df["org_leaving_time"])
+    na_flow_df["dest_arival_time"] = pd.to_datetime(na_flow_df["dest_arival_time"])
+    trip_point_df = trip_point_df.merge(
+        na_flow_df[
             [
                 "uid",
                 "trip_id",
@@ -68,12 +93,32 @@ def readTripData(year: int, city: str, data_dir: str) -> pd.DataFrame:
         on=["uid", "trip_id"],
         how="left",
     )
-    trip_df = trip_df[
-        (trip_df["dest_arival_time"] - trip_df["org_leaving_time"]).dt.total_seconds()
+    trip_point_df = trip_point_df[
+        (
+            trip_point_df["dest_arival_time"] - trip_point_df["org_leaving_time"]
+        ).dt.total_seconds()
         / 3600
         <= 24
     ]
-    return trip_df
+
+    print(f"{datetime.now()}: Merging raw data with trip data to get datetime")
+    trip_point_df = trip_point_df.merge(
+        raw_df[["uid", "datetime", "lat", "lng"]],
+        on=["uid", "lat", "lng"],
+        how="left",
+    )
+
+    print(f"{datetime.now()}: Converting datetime to datetime object")
+    trip_point_df["datetime"] = pd.to_datetime(trip_point_df["datetime"])
+    trip_point_df = trip_point_df[
+        trip_point_df["datetime"].between(
+            trip_point_df["org_leaving_time"], trip_point_df["dest_arival_time"]
+        )
+    ].reset_index(drop=True)
+    assert trip_point_df["datetime"].isna().sum() == 0
+    print(f"{datetime.now()}: Validation Done")
+
+    return trip_point_df
 
 
 def readRawData(data_dir: str, cores: int = max(1, cpu_count() // 2)) -> pd.DataFrame:
@@ -101,30 +146,11 @@ def readRawData(data_dir: str, cores: int = max(1, cpu_count() // 2)) -> pd.Data
 
 
 def processData(df: pd.DataFrame, shape_files: List[gpd.GeoDataFrame]) -> pd.DataFrame:
-    """
-    Processes the trip data by calculating various features such as speed, acceleration,
-    jerk, angular deviation, and straightness index. It also checks if the trip starts or ends
-    at a bus, train, or metro stop and if it is found at a green space.
-    The function also filters out trips with less than 5 impressions and calculates the time taken
-    and distance covered for each trip.
-
-    Args:
-        df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
-        shape_files (List[gpd.GeoDataFrame]): List of GeoDataFrames containing bus, train, metro stops and green space polygons.
-
-    Returns:
-        pd.DataFrame: Processed DataFrame with additional features and filtered trips.
-
-    Example:
-        >>> processed_df = processData(df, shape_files)
-        >>> print(processed_df.head())
-    """
-
     temp_df = df.copy()
 
     # In some trips, for very same timestamp, we observed multiple datapoints. To deal with that, dropping all the duplicate timestamps and keeping the first one
     temp_df = (
-        temp_df.groupby(["uid", "trip_id"])
+        temp_df.groupby(["uid", "trip_id"], group_keys=True)
         .apply(lambda x: x.drop_duplicates(subset=["datetime"], keep="first"))
         .reset_index(drop=True)
     )
@@ -237,18 +263,45 @@ def processData(df: pd.DataFrame, shape_files: List[gpd.GeoDataFrame]) -> pd.Dat
 
 def removeOutlier(group: pd.DataFrame) -> pd.DataFrame:
     """
+    Filters outliers in the `speed` column by replacing high z-score values (≥ 3) with
+    the median speed. This function is typically applied to each group within a larger
+    grouped DataFrame (e.g., a single trip trajectory).
 
-    Removes outliers from the speed column of the DataFrame based on z-score.
-    If the z-score is greater than or equal to 3, the speed is replaced with the median speed.
+    How It Works:
+        1. Calculates the median speed within the group.
+        2. Identifies rows where `speed_z_score` is ≥ 3.
+        3. Replaces those outlier `speed` values with the median speed.
+        4. Returns the modified group DataFrame.
 
     Args:
-        group (pd.DataFrame): DataFrame containing speed and speed_z_score columns.
+        group (pd.DataFrame): Subset of a larger DataFrame, typically representing
+            one trip. Must contain at least:
+            - `speed`: The speed values to check.
+            - `speed_z_score`: The corresponding z-score values for speed.
 
     Returns:
-        pd.DataFrame: DataFrame with outliers removed from the speed column.
+        pd.DataFrame: The same DataFrame with outlier speeds replaced by the median.
 
-    example:
-        >>> print(removeOutlier(df))
+    Example:
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> data = {
+        ...     'speed': [5.0, 120.0, 6.0],
+        ...     'speed_z_score': [0.2, 3.5, 0.3]
+        ... }
+        >>> df = pd.DataFrame(data)
+        >>> print(df)
+             speed  speed_z_score
+        0     5.0            0.20
+        1   120.0            3.50
+        2     6.0            0.30
+
+        >>> cleaned = removeOutlier(df)
+        >>> print(cleaned)
+             speed  speed_z_score
+        0     5.0            0.20
+        1     5.5            3.50  # replaced with median (5.5)
+        2     6.0            0.30
     """
 
     group_speed = group["speed"]
@@ -261,23 +314,29 @@ def removeOutlier(group: pd.DataFrame) -> pd.DataFrame:
 
 def calculateBearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
+    Computes the initial bearing (forward azimuth) from one geographic coordinate to another.
+    This bearing is measured clockwise from true north and returned as a value between 0 and 360 degrees.
 
-    Calculates the initial bearing (or forward azimuth) between two geographical coordinates.
-    This is the angle between the north direction and the line connecting the start point to the end point.
-    The result is normalized to a value between 0 and 360 degrees.
+    How It Works:
+        1. Converts both starting (lat1, lon1) and ending (lat2, lon2) coordinates to radians.
+        2. Uses the difference in longitudes (dlon) and trigonometric functions to calculate
+           the bearing in radians.
+        3. Converts the bearing from radians to degrees.
+        4. Normalizes the result to ensure it falls within the range of [0, 360).
 
     Args:
-        lat1 (float): Latitude of the starting point in decimal degrees.
-        lon1 (float): Longitude of the starting point in decimal degrees.
-        lat2 (float): Latitude of the ending point in decimal degrees.
-        lon2 (float): Longitude of the ending point in decimal degrees.
+        lat1 (float): Latitude of the start location (in decimal degrees).
+        lon1 (float): Longitude of the start location (in decimal degrees).
+        lat2 (float): Latitude of the end location (in decimal degrees).
+        lon2 (float): Longitude of the end location (in decimal degrees).
 
     Returns:
-        float: Initial bearing from the starting point to the ending point in degrees.
+        float: The initial bearing in degrees, between 0 and 360.
 
     Example:
-        >>> calculateBearing(12.9716, 77.5946, 13.0827, 80.2707)
-        76.123456789
+        >>> bearing = calculateBearing(12.9716, 77.5946, 13.0827, 80.2707)
+        >>> print(bearing)
+        76.123456789  # Example output
     """
 
     lon1, lat1, lon2, lat2 = map(np.deg2rad, [lon1, lat1, lon2, lat2])
@@ -292,18 +351,40 @@ def calculateBearing(lat1: float, lon1: float, lat2: float, lon2: float) -> floa
 
 def checkIfNearStop(df: pd.DataFrame, sdf: gpd.GeoDataFrame) -> List[int]:
     """
-    Checks if the first and last points of a trip are within a bus stop area.
+    Determines whether the first and/or last point of a trip lies within a given
+    polygon area (e.g., bus stop, train station, or metro station). It returns a list
+    of length equal to `df.shape[0]`, with each element indicating whether:
+
+    - Both the first and last points intersect the polygon(s): 2
+    - Only one of the points intersects the polygon(s): 1
+    - Neither the first nor the last point intersects the polygon(s): 0
 
     Args:
-        df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
-        sdf (gpd.GeoDataFrame): GeoDataFrame containing bus stop polygons.
+        df (pd.DataFrame): DataFrame containing trip data, including `lat` and `lng`
+            columns for each point in the trip.
+        sdf (gpd.GeoDataFrame): GeoDataFrame representing polygons for stops or stations
+            (e.g., bus stops, train stations, metro stations).
 
     Returns:
-        List[int]: A list of integers indicating whether the first and/or last points are within a bus stop area.
+        List[int]: A list of integers (2, 1, or 0) indicating the presence of the
+        first/last point in the polygon(s).
 
     Example:
-        >>> checkIfNearStop(df, sdf)
-        [1]
+        >>> import pandas as pd
+        >>> import geopandas as gpd
+        >>> from shapely.geometry import Polygon
+        >>> # Example DataFrame with two points
+        >>> df = pd.DataFrame({
+        ...     'lat': [12.9716, 12.9760],
+        ...     'lng': [77.5946, 77.5950]
+        ... })
+        >>> # Example GeoDataFrame representing a stop
+        >>> polygons = [Polygon([(77.5940, 12.9710), (77.5950, 12.9710),
+        ...                      (77.5950, 12.9720), (77.5940, 12.9720)])]
+        >>> sdf = gpd.GeoDataFrame(geometry=polygons, crs="EPSG:4326")
+        >>> result = checkIfNearStop(df, sdf)
+        >>> print(result)
+        [1, 1]  # Only the first point intersects the polygon
     """
     total_points = df.shape[0] - 1
     first_lat = df.iloc[0]["lat"]
@@ -346,23 +427,40 @@ def checkIfNearStop(df: pd.DataFrame, sdf: gpd.GeoDataFrame) -> List[int]:
 
 def checkIfAtGrrenSpace(df: pd.DataFrame, sdf: gpd.GeoDataFrame) -> List[int]:
     """
+    Checks whether a trip has at least five data points that fall within the specified
+    green space polygons. If it does, the entire trip is marked with 1 for every row.
+    Otherwise, it returns 0 for each row.
 
-    Checks if the first point of a trip is within a green space area.
-    If it is, returns 1 for all points in the trip; otherwise, returns 0.
-    Also checks if the last point of a trip is within a green space area.
-    If it is, returns 1 for all points in the trip; otherwise, returns 0.
-    If both the first and last points are within a green space area, returns 2 for all points in the trip.
+    Note:
+        - This function uses a threshold of five detections by default, but you can
+          customize this threshold as needed.
+
+    How It Works:
+        1. Iterates through all points in `df` (each representing a trajectory point in the trip).
+        2. For each point, checks if it intersects any of the polygons in `sdf`.
+        3. If at least five points from the trip are found in a green space, returns a list
+           of 1s (one per row in `df`).
+        4. Otherwise, returns a list of 0s.
 
     Args:
-        df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
-        sdf (gpd.GeoDataFrame): GeoDataFrame containing green space polygons.
+        df (pd.DataFrame): DataFrame containing trip data with at least `lat` and `lng`
+            columns for each point in the trip.
+        sdf (gpd.GeoDataFrame): GeoDataFrame representing one or more green space polygons.
 
     Returns:
-        List[int]: A list of integers indicating whether the first and/or last points are within a green space area.
+        List[int]: A list of integers (1 or 0) for each row in `df`.
+            - `[1, 1, ..., 1]` if at least five points are within green space
+            - `[0, 0, ..., 0]` otherwise
 
     Example:
-        >>> checkIfAtGrrenSpace(df, sdf)
-        [1]
+        >>> df = pd.DataFrame({
+        ...     "lat": [12.9716, 12.9780, 12.9825, 12.9850, 12.9900],
+        ...     "lng": [77.5946, 77.5949, 77.5953, 77.5960, 77.5965]
+        ... })
+        >>> green_spaces = gpd.read_file("greenspaces.shp")  # Example file
+        >>> result = checkIfAtGrrenSpace(df, green_spaces)
+        >>> print(result)
+        [1, 1, 1, 1, 1]   # indicates at least 5 points are inside a green space
     """
 
     count = 0
@@ -389,19 +487,39 @@ def checkIfAtGrrenSpace(df: pd.DataFrame, sdf: gpd.GeoDataFrame) -> List[int]:
 
 def calculateStraightnessIndex(df: pd.DataFrame) -> List[float]:
     """
+    Calculates a trip’s "straightness index" by comparing the total distance traveled
+    to the straight-line distance between the first and last points. The resulting ratio
+    (straight-line distance ÷ actual path distance) measures how directly a traveler
+    moved from start to end.
 
-    Calculates the straightness index of a trip based on the distance covered and the straight line distance.
+    How It Works:
+        1. Summarizes the total distance covered (`distance_covered`).
+        2. Calculates the straight-line (haversine) distance between the first and last
+           coordinates in the trip.
+        3. Divides the straight-line distance by the actual path length.
+        4. Returns that value for every row in the DataFrame.
 
     Args:
-        df (pd.DataFrame): DataFrame containing trip data with latitude and longitude columns.
+        df (pd.DataFrame): A DataFrame representing a single trip, containing at least
+            - `lat`: Latitude coordinates
+            - `lng`: Longitude coordinates
+            - `distance_covered`: The distance between consecutive points (in meters)
 
     Returns:
-        List[float]: A list of floats representing the straightness index for each point in the trip.
+        List[float]: A list (the same length as `df`) with the same straightness index
+        repeated for each row. If the path length is 0 or NaN, returns `[np.nan] * len(df)`.
 
     Example:
-        >>> df = pd.DataFrame({"lat": [12.9716, 13.0827], "lng": [77.5946, 80.2707]})
-        >>> calculateStraightnessIndex(df)
-        [0.5]
+        >>> import pandas as pd
+        >>> from haversine import haversine
+        >>> df = pd.DataFrame({
+        ...     "lat": [12.9716, 13.0827],
+        ...     "lng": [77.5946, 80.2707],
+        ...     "distance_covered": [0, 35000]  # for example
+        ... })
+        >>> result = calculateStraightnessIndex(df)
+        >>> print(result)
+        [0.5, 0.5]  # Indicates the path is half as direct as a straight line
     """
     # Calculate the length of the actual path
     path_length = df["distance_covered"].sum()
@@ -425,17 +543,49 @@ def calculateStraightnessIndex(df: pd.DataFrame) -> List[float]:
 
 def generateTrajStats(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Generates trajectory statistics for each trip in the DataFrame.
+    Aggregates and summarizes key trip-level statistics (e.g., median/percentile speeds,
+    accelerations, jerk, angular deviation, distance) from enhanced trip data. This function
+    operates on data that has already undergone feature engineering (e.g., via `featureEngineering`),
+    and creates consolidated columns reflecting various trip metrics. A progress bar is displayed
+    during calculation.
 
     Args:
-        df (pd.DataFrame): DataFrame containing trip data with various features.
+        df (pd.DataFrame): A DataFrame containing enhanced trip data, including columns such as
+            `uid`, `trip_id`, `new_speed`, `accelaration`, `jerk`, and `angular_deviation`.
+            It may also contain flags for stops and green spaces.
 
     Returns:
-        pd.DataFrame: DataFrame containing trajectory statistics for each trip.
+        pd.DataFrame: A DataFrame containing aggregated statistics for each trip, including:
+            - Speed median, 95th percentile, and standard deviation
+            - Acceleration median, 95th percentile, and standard deviation
+            - Jerk median, 95th percentile, and standard deviation
+            - Angular deviation median, 95th percentile, and standard deviation
+            - Straightness index
+            - Total distance covered (km)
+            - Indicators for whether the trip starts/ends near specific transport stops or green spaces
+            - Weekend/hour categories
+            - A placeholder for `transport_mode`
 
     Example:
-        >>> df = pd.DataFrame({"uid": [1, 1], "trip_id": [1, 1], "new_speed": [10, 20]})
-        >>> generateTrajStats(df)
+        >>> import pandas as pd
+        >>> data = {
+        ...     "uid": [1, 1, 1, 2, 2],
+        ...     "trip_id": [10, 10, 10, 20, 20],
+        ...     "new_speed": [3.0, 5.5, 2.0, 4.0, 4.5],
+        ...     "accelaration": [0.1, 0.2, 0.3, 0.1, 0.05],
+        ...     "jerk": [0.01, 0.02, 0.03, 0.01, 0.02],
+        ...     "angular_deviation": [5, 10, 15, 3, 4],
+        ... }
+        >>> df = pd.DataFrame(data)
+        >>> result = generateTrajStats(df)
+        >>> result.head()
+           datetime  uid  trip_id  speed_median  ...  hour_category  transport_mode
+        0       NaT    1       10           3.5  ...             0             NaN
+        1       NaT    1       10           3.5  ...             0             NaN
+        2       NaT    1       10           3.5  ...             0             NaN
+        3       NaT    2       20           4.25 ...             0             NaN
+        4       NaT    2       20           4.25 ...             0             NaN
+
     """
 
     progress_bar = tqdm(total=25)
@@ -564,11 +714,47 @@ def generateTrajStats(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def featureEngineering(
-    df_collection: List[pd.DataFrame],
+    trip_df: pd.DataFrame,
     shape_files: List[gpd.GeoDataFrame],
     cores: int = max(1, int(cpu_count() // 2)),
 ) -> pd.DataFrame:
+    """
+    Performs feature engineering on raw trip data by partitioning it and processing each partition
+    in parallel. This includes calculating advanced trip features such as speed, acceleration,
+    angular deviation, and straightness index, as well as identifying whether a trip starts or ends
+    near transport stops or green spaces.
+
+    This function distributes work across the specified number of CPU cores, calls the `processData`
+    child function on each chunk, and then merges all processed chunks into a single DataFrame.
+
+    Args:
+        trip_df (pd.DataFrame): A DataFrame containing raw trip information, including columns for
+            user ID, trip ID, latitude (`lat`), longitude (`lng`), and timestamps (`datetime`).
+        shape_files (List[gpd.GeoDataFrame]): A list of GeoDataFrames representing various geographic
+            layers (e.g., bus stops, train stops, metro stops, green spaces). These are used to check
+            if trips start/end near these points or areas.
+        cores (int, optional): Number of CPU cores to use for parallel processing. Defaults to half
+            of the available cores.
+
+    Returns:
+        pd.DataFrame: A concatenated DataFrame containing the enhanced feature set for all trips.
+        Features include:
+            - Speed, acceleration, jerk, and angular deviation
+            - Straightness index
+            - Indicators for whether a trip begins or ends near transport stops or in green spaces
+            - Filtered trips based on minimum impressions
+
+    Example:
+        >>> # Suppose 'trip_df' is a DataFrame of trips and 'shapes' is a list of GeoDataFrames
+        >>> from your_module import featureEngineering
+        >>> enhanced_df = featureEngineering(trip_df, shapes, cores=4)
+        >>> print(enhanced_df.head())
+    """
+
+    print(f"{datetime.now()}: Get Load Balanced Buckets")
+    df_collection = getLoadBalancedBuckets(trip_df, cores)
     args = [(df, shape_files) for df in df_collection]  # Wrap each df in a tuple
+    del df_collection
     with Pool(cores) as p:
         tdf = p.starmap(processData, args)
     return pd.concat(tdf, ignore_index=True)
@@ -577,82 +763,82 @@ def featureEngineering(
 if __name__ == "__main__":
 
     print(f"{datetime.now()}: Starting Process...")
-    city = os.getenv("CITY")  # "Glasgow"
-    years = json.loads(os.getenv("YEARS"))  # [2022, 2023]
-    CORES = int(os.getenv("CORES"))
-    bus_stops_shape_file = os.getenv("SHAPE_FILE_BUS")
-    train_stops_shape_file = os.getenv("SHAPE_FILE_TRAIN")
-    metro_stops_shape_file = os.getenv("SHAPE_FILE_METRO")
-    gspace_file = os.getenv("SHAPE_FILE_GREEN_SPACES")
-    output_dir = os.getenv("OUTPUT_DIR")
+    # city = os.getenv("CITY")  # "Glasgow"
+    # years = json.loads(os.getenv("YEARS"))  # [2022, 2023]
+    # CORES = int(os.getenv("CORES"))
+    # bus_stops_shape_file = os.getenv("SHAPE_FILE_BUS")
+    # train_stops_shape_file = os.getenv("SHAPE_FILE_TRAIN")
+    # metro_stops_shape_file = os.getenv("SHAPE_FILE_METRO")
+    # gspace_file = os.getenv("SHAPE_FILE_GREEN_SPACES")
+    # output_dir = os.getenv("OUTPUT_DIR")
 
-    print(f"{datetime.now()}: Reading Bus Stops Shape File")
-    bus_stops = gpd.GeoDataFrame.from_file(bus_stops_shape_file)
-    bus_stops.sindex
+    # print(f"{datetime.now()}: Reading Bus Stops Shape File")
+    # bus_stops = gpd.GeoDataFrame.from_file(bus_stops_shape_file)
+    # bus_stops.sindex
 
-    print(f"{datetime.now()}: Reading Train Stops Shape File")
-    train_stops = gpd.GeoDataFrame.from_file(train_stops_shape_file)
-    train_stops.sindex
+    # print(f"{datetime.now()}: Reading Train Stops Shape File")
+    # train_stops = gpd.GeoDataFrame.from_file(train_stops_shape_file)
+    # train_stops.sindex
 
-    print(f"{datetime.now()}: Reading Metro Stops Shape File")
-    metro_stops = gpd.GeoDataFrame.from_file(metro_stops_shape_file)
-    metro_stops.sindex
+    # print(f"{datetime.now()}: Reading Metro Stops Shape File")
+    # metro_stops = gpd.GeoDataFrame.from_file(metro_stops_shape_file)
+    # metro_stops.sindex
 
-    print(f"{datetime.now()}: Reading Green Space Shape File")
-    green_space_df = gpd.GeoDataFrame.from_file(gspace_file)
-    if green_space_df.crs is not None and green_space_df.crs != "EPSG:4326":
-        green_space_df = green_space_df.to_crs(epsg=4326)
-    green_space_df.sindex
-    print(f"{datetime.now()}: Finished Reading Shape Files")
+    # print(f"{datetime.now()}: Reading Green Space Shape File")
+    # green_space_df = gpd.GeoDataFrame.from_file(gspace_file)
+    # if green_space_df.crs is not None and green_space_df.crs != "EPSG:4326":
+    #     green_space_df = green_space_df.to_crs(epsg=4326)
+    # green_space_df.sindex
+    # print(f"{datetime.now()}: Finished Reading Shape Files")
 
-    shape_files = [bus_stops, train_stops, metro_stops, green_space_df]
-    for year in years:
-        print(
-            f"""
-        City: {city}
-        Year: {year}
-        """
-        )
-        raw_data_dir = f"{os.getenv('RAW_DATA_DIR')}/{city}/{year}"
-        trip_data_dir = f"{os.getenv('TRIP_DATA_DIR')}/{city}/{year}"
-        print(f"{datetime.now()}: Reading raw data")
-        raw_df = readRawData(raw_data_dir, CORES)
-        print(f"{datetime.now()}: Reading trip & NA flow data")
-        trip_df = readTripData(year, city, trip_data_dir)
-        exit()
-        print(f"{datetime.now()}: Merging raw data with trip data to get datetime")
-        trip_df = trip_df.merge(
-            raw_df[["uid", "datetime", "lat", "lng"]],
-            on=["uid", "lat", "lng"],
-            how="left",
-        )
-        print(f"{datetime.now()}: Converting datetime to datetime object")
-        trip_df["datetime"] = pd.to_datetime(trip_df["datetime"])
-        trip_df = trip_df[
-            trip_df["datetime"].between(
-                trip_df["org_leaving_time"], trip_df["dest_arival_time"]
-            )
-        ].reset_index(drop=True)
-        assert trip_df["datetime"].isna().sum() == 0
-        print(f"{datetime.now()}: Validation Done")
-        del raw_df
-        print(f"{datetime.now()}: Get Load Balanced Buckets")
-        df_collection = getLoadBalancedBuckets(trip_df, CORES)
-        del trip_df
-        print(f"{datetime.now()}: Feature Engineering")
-        trip_df = featureEngineering(df_collection, CORES, shape_files)
-        del df_collection
-        print(f"{datetime.now()}: Saving Processed Data")
-        os.makedirs(f"{output_dir}/{city}/{year}", exist_ok=True)
-        trip_df.to_csv(
-            f"{output_dir}/{city}/{year}/processed_trip_points_data.csv",
-            index=False,
-        )
-        print(f"{datetime.now()}: Generating Huq Stats")
-        huq_stats = generateTrajStats(trip_df)
-        huq_stats.to_csv(
-            f"{output_dir}/{city}/{year}/huq_stats_df_for_ml.csv",
-            index=False,
-        )
+    # shape_files = [bus_stops, train_stops, metro_stops, green_space_df]
+    # for year in years:
+    #     print(
+    #         f"""
+    #     City: {city}
+    #     Year: {year}
+    #     """
+    #     )
+    #     raw_data_dir = f"{os.getenv('RAW_DATA_DIR')}/{city}/{year}"
+    #     trip_data_dir = f"{os.getenv('TRIP_DATA_DIR')}/{city}/{year}"
+    #     print(f"{datetime.now()}: Reading raw data")
+    #     raw_df = readRawData(raw_data_dir, CORES)
+    #     print(f"{datetime.now()}: Reading trip & NA flow data")
+    #     trip_df = readTripData(year, city, trip_data_dir)
+    #     exit()
+    #     print(f"{datetime.now()}: Merging raw data with trip data to get datetime")
+    #     trip_df = trip_df.merge(
+    #         raw_df[["uid", "datetime", "lat", "lng"]],
+    #         on=["uid", "lat", "lng"],
+    #         how="left",
+    #     )
+    #     print(f"{datetime.now()}: Converting datetime to datetime object")
+    #     trip_df["datetime"] = pd.to_datetime(trip_df["datetime"])
+    #     trip_df = trip_df[
+    #         trip_df["datetime"].between(
+    #             trip_df["org_leaving_time"], trip_df["dest_arival_time"]
+    #         )
+    #     ].reset_index(drop=True)
+    #     assert trip_df["datetime"].isna().sum() == 0
+    #     print(f"{datetime.now()}: Validation Done")
+    #     del raw_df
+    #     print(f"{datetime.now()}: Get Load Balanced Buckets")
+    #     df_collection = getLoadBalancedBuckets(trip_df, CORES)
+    #     del trip_df
+    #     print(f"{datetime.now()}: Feature Engineering")
+    #     trip_df = featureEngineering(df_collection, CORES, shape_files)
+    #     del df_collection
+    #     print(f"{datetime.now()}: Saving Processed Data")
+    #     os.makedirs(f"{output_dir}/{city}/{year}", exist_ok=True)
+    #     trip_df.to_csv(
+    #         f"{output_dir}/{city}/{year}/processed_trip_points_data.csv",
+    #         index=False,
+    #     )
+    #     print(f"{datetime.now()}: Generating Huq Stats")
+    #     huq_stats = generateTrajStats(trip_df)
+    #     huq_stats.to_csv(
+    #         f"{output_dir}/{city}/{year}/huq_stats_df_for_ml.csv",
+    #         index=False,
+    #     )
 
     print(f"{datetime.now()}: Finished.")

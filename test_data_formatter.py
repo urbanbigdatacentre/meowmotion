@@ -1,32 +1,80 @@
-import json
+# import json
 import os
 from datetime import datetime
+from multiprocessing import Pool
 
 import geopandas as gpd
 import pandas as pd
 from dotenv import load_dotenv
 
-from meowmotion.data_formatter import (
+from meowmotion.data_formatter import (  # getLoadBalancedBuckets,; readRawData,
     featureEngineering,
     generateTrajStats,
-    getLoadBalancedBuckets,
-    readRawData,
-    readTripData,
+    processTripData,
 )
+from meowmotion.process_data import readJsonFiles, saveFile
 
 load_dotenv()
 
+city = "Glasgow"
+shape_file = "U:/Projects/Huq/Faraz/huq_city_data/Shapefiles/msoa_intzone_boundaries/glasgow/msoa_glasgow.shp"
+hldf_file = (
+    "U:\\Projects\\Huq\\Faraz\\huq_city_data\\homeResults\\Glasgow_2019_results.csv"
+)
+adult_population_file = "U:/Projects/Huq/od_project/outputs/imd_population_estimates/Glasgow_IMD_summary.csv"
+year = 2019
+root = f"U:/Operations/SCO/Faraz/huq_compiled/{city}/{year}"
+trip_point_data_file = (
+    "U:\\Projects\\Huq\\Faraz\\package_testing\\trip_points\\trip_points.csv"
+)
+na_flow_data_file = "U:\\Projects\\Huq\\Faraz\\package_testing\\na_flows\\na_flows.csv"
+cpu_cores = 12
+impr_acc = 100
+month = 1
+radius = 500
+time_th = 5  # in minutes
+output_dir = "U:/Projects/Huq/Faraz/package_testing"
+org_loc_cols = ("org_lng", "org_lat")
+dest_loc_cols = ("dest_lng", "dest_lat")
+
+
+def readData():
+    ##################################################################################
+    #                                                                                #
+    #                           Fetching Data From DB                                #
+    #                                                                                #
+    ##################################################################################
+
+    start_time = datetime.now()
+
+    print(f"{start_time}: Fetching data from Database")
+    print(f"{datetime.now()}: Fetching data from Json Files")
+    month_files = [
+        f for f in os.listdir(root) if f.split("_")[-1].split(".")[0] == str(month)
+    ]  # Getting the files for the specific month
+    args = [(root, mf) for mf in month_files]
+    with Pool(cpu_cores) as p:
+        results = p.starmap(readJsonFiles, args)
+
+    print(f"{datetime.now()}: Data Concatination")
+    df = pd.concat(results)  # Concatinating the data fetched from the database
+
+    del results  # Deleting the results to free up the memory
+    print(f"{datetime.now()}: Data Concatination Completed")
+    print(f"{datetime.now()}: Data fetching completed\n\n")
+    print(f"Number of Records: {df.shape[0]}")
+
+    # df = pd.read_csv('data/geolife_sample_data.csv')
+
+    return df
+
+
 if __name__ == "__main__":
 
-    print(f"{datetime.now()}: Starting Process...")
-    city = os.getenv("CITY")  # "Glasgow"
-    years = json.loads(os.getenv("YEARS"))  # [2022, 2023]
-    CORES = int(os.getenv("CORES"))
     bus_stops_shape_file = os.getenv("SHAPE_FILE_BUS")
     train_stops_shape_file = os.getenv("SHAPE_FILE_TRAIN")
     metro_stops_shape_file = os.getenv("SHAPE_FILE_METRO")
     gspace_file = os.getenv("SHAPE_FILE_GREEN_SPACES")
-    output_dir = os.getenv("OUTPUT_DIR")
 
     print(f"{datetime.now()}: Reading Bus Stops Shape File")
     bus_stops = gpd.read_file(bus_stops_shape_file)
@@ -46,54 +94,30 @@ if __name__ == "__main__":
         green_space_df = green_space_df.to_crs(epsg=4326)
     green_space_df.sindex
     print(f"{datetime.now()}: Finished Reading Shape Files")
-
     shape_files = [bus_stops, train_stops, metro_stops, green_space_df]
-    for year in years:
-        print(
-            f"""
-        City: {city}
-        Year: {year}
-        """
-        )
-        raw_data_dir = f"{os.getenv('RAW_DATA_DIR')}/{city}/{year}"
-        trip_data_dir = f"{os.getenv('TRIP_DATA_DIR')}"
-        print(f"{datetime.now()}: Reading raw data")
-        raw_df = readRawData(raw_data_dir, CORES)
-        print(f"{datetime.now()}: Reading trip & NA flow data")
-        trip_df = readTripData(year, city, trip_data_dir)
-        print(f"{datetime.now()}: Merging raw data with trip data to get datetime")
-        trip_df = trip_df.merge(
-            raw_df[["uid", "datetime", "lat", "lng"]],
-            on=["uid", "lat", "lng"],
-            how="left",
-        )
-        print(f"{datetime.now()}: Converting datetime to datetime object")
-        trip_df["datetime"] = pd.to_datetime(trip_df["datetime"])
-        trip_df = trip_df[
-            trip_df["datetime"].between(
-                trip_df["org_leaving_time"], trip_df["dest_arival_time"]
-            )
-        ].reset_index(drop=True)
-        assert trip_df["datetime"].isna().sum() == 0
-        print(f"{datetime.now()}: Validation Done")
-        del raw_df
-        print(f"{datetime.now()}: Get Load Balanced Buckets")
-        df_collection = getLoadBalancedBuckets(trip_df, CORES)
-        del trip_df
-        print(f"{datetime.now()}: Feature Engineering")
-        trip_df = featureEngineering(df_collection, shape_files, CORES)
-        del df_collection
-        print(f"{datetime.now()}: Saving Processed Data")
-        os.makedirs(f"{output_dir}/{city}/{year}", exist_ok=True)
-        trip_df.to_csv(
-            f"{output_dir}/{city}/{year}/processed_trip_points_data.csv",
-            index=False,
-        )
-        print(f"{datetime.now()}: Generating Huq Stats")
-        huq_stats = generateTrajStats(trip_df)
-        huq_stats.to_csv(
-            f"{output_dir}/{city}/{year}/huq_stats_df_for_ml.csv",
-            index=False,
-        )
 
+    print(f"{datetime.now()}: Reading raw data")
+    raw_df = readData()  # Reading the data from the database
+
+    print(f"{datetime.now()}: Reading Trip Point Data")
+    tp_df = pd.read_csv(trip_point_data_file)  # Reading the data from the database
+
+    print(f"{datetime.now()}: Reading NA-flow Data")
+    naf_df = pd.read_csv(na_flow_data_file)  # Reading the data from the database
+
+    print(f"{datetime.now()}: Processing Trip Point Data")
+
+    trip_df = processTripData(trip_point_df=tp_df, na_flow_df=naf_df, raw_df=raw_df)
+
+    print(f"{datetime.now()}: Feature Engineering")
+    trip_df = featureEngineering(
+        trip_df=trip_df, shape_files=shape_files, cores=cpu_cores
+    )
+
+    print(f"{datetime.now()}: Saving Processed Data")
+    saveFile(f"{output_dir}/tmd", "processed_trip_points_data.csv", trip_df)
+
+    print(f"{datetime.now()}: Generating Huq Stats")
+    trip_stats_df = generateTrajStats(trip_df)
+    saveFile(f"{output_dir}/tmd", "trip_stats_data.csv", trip_stats_df)
     print(f"{datetime.now()}: Finished.")
