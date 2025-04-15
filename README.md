@@ -1,14 +1,8 @@
 <p align="center">
   <img src="docs/assets/meowmotion_logo.png" alt="MeowMotion Logo" width="250"/><br>
-  <strong>MeowMotion: Detecting Trips and Transport Mode from GPS Data</strong><br>
-  <em>Developer & Author: Dr. Faraz M. Awan</em>
-</p>
-
-<h1 align="center">MeowMotion</h1>
-
-<p align="center">
   <strong>Detecting Trips, OD Matrices, and Transport Modes from GPS Data</strong><br>
-  <em>A Python package for processing geolocation data at scale</em>
+  <em>A Python package for processing geolocation data at scale</em><br>
+  <em>Developer & Author: Dr. Faraz M. Awan</em>
 </p>
 
 <p align="center">
