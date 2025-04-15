@@ -502,8 +502,6 @@ def modePredict(
     processed_non_agg_data = pd.read_csv(processed_non_agg_data)
     processed_non_agg_data = processed_non_agg_data[
         [
-            "year",
-            "distance_threshold",
             "uid",
             "imd_quintile",
             "trip_id",
