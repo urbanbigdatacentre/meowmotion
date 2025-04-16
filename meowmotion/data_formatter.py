@@ -121,13 +121,15 @@ def processTripData(
     return trip_point_df
 
 
-def readRawData(data_dir: str, cores: int = max(1, cpu_count() // 2)) -> pd.DataFrame:
+def readRawData(
+    data_dir: str, cpu_cores: int = max(1, cpu_count() // 2)
+) -> pd.DataFrame:
     """
     Reads and compiles raw JSON data files for a given year and city by parallel processing
     multiple monthly files.
 
     Args:
-        cores (int): The number of CPU cores to be used for parallel processing. By default, it uses half of the available cores.
+        cpu_cores (int): The number of CPU cpu_cores to be used for parallel processing. By default, it uses half of the available cpu_cores.
         data_dir (str): The directory where the raw data files are stored.
 
     Returns:
@@ -140,7 +142,7 @@ def readRawData(data_dir: str, cores: int = max(1, cpu_count() // 2)) -> pd.Data
     root = data_dir
     month_files = os.listdir(root)
     args = [(root, mf) for mf in month_files]
-    with Pool(cores) as p:
+    with Pool(cpu_cores) as p:
         df = p.starmap(readJsonFiles, args)
     return pd.concat(df, ignore_index=True)
 
@@ -716,7 +718,7 @@ def generateTrajStats(df: pd.DataFrame) -> pd.DataFrame:
 def featureEngineering(
     trip_df: pd.DataFrame,
     shape_files: List[gpd.GeoDataFrame],
-    cores: int = max(1, int(cpu_count() // 2)),
+    cpu_cores: int = max(1, int(cpu_count() // 2)),
 ) -> pd.DataFrame:
     """
     Performs feature engineering on raw trip data by partitioning it and processing each partition
@@ -733,7 +735,7 @@ def featureEngineering(
         shape_files (List[gpd.GeoDataFrame]): A list of GeoDataFrames representing various geographic
             layers (e.g., bus stops, train stops, metro stops, green spaces). These are used to check
             if trips start/end near these points or areas.
-        cores (int, optional): Number of CPU cores to use for parallel processing. Defaults to half
+        cpu_cores (int, optional): Number of CPU cores to use for parallel processing. Defaults to half
             of the available cores.
 
     Returns:
@@ -752,10 +754,10 @@ def featureEngineering(
     """
 
     print(f"{datetime.now()}: Get Load Balanced Buckets")
-    df_collection = getLoadBalancedBuckets(trip_df, cores)
+    df_collection = getLoadBalancedBuckets(trip_df, cpu_cores)
     args = [(df, shape_files) for df in df_collection]  # Wrap each df in a tuple
     del df_collection
-    with Pool(cores) as p:
+    with Pool(cpu_cores) as p:
         tdf = p.starmap(processData, args)
     return pd.concat(tdf, ignore_index=True)
 

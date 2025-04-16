@@ -484,8 +484,8 @@ def modePredict(
     artifacts_dir: str,
     model_file_name: str,
     le_file_name: str,
-    processed_non_agg_data: str,
-    stats_agg_data: str,
+    processed_non_agg_data: pd.DataFrame,
+    stats_agg_data: pd.DataFrame,
     shape_file: str,
     output_dir: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -499,7 +499,7 @@ def modePredict(
     gdf.index
 
     print(f"{datetime.now()}: Loading Processed Data")
-    processed_non_agg_data = pd.read_csv(processed_non_agg_data)
+    # processed_non_agg_data = pd.read_csv(processed_non_agg_data)
     processed_non_agg_data = processed_non_agg_data[
         [
             "uid",
@@ -563,7 +563,8 @@ def modePredict(
     ]
 
     print(f"{datetime.now()}: Loading Stats Aggregated Data")
-    data = pd.read_csv(stats_agg_data, parse_dates=["datetime"])
+    # data = pd.read_csv(stats_agg_data, parse_dates=["datetime"])
+    data = stats_agg_data.copy()
     data["month"] = data["datetime"].dt.month
     # keep the mode of month for each uid and trip_id
     data["month"] = data.groupby(["uid", "trip_id"])["month"].transform(
