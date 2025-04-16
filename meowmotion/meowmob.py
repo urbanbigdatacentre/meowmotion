@@ -311,9 +311,9 @@ def generateOD(
     active_day_df: pd.DataFrame,
     hldf: pd.DataFrame,
     adult_population: pd.DataFrame,
-    org_loc_cols: Tuple[str, str],  # (lng, lat)
-    dest_loc_cols: Tuple[str, str],  # (lng, lat)
     output_dir: str,
+    org_loc_cols: Optional[Tuple[str, str]] = ("org_lng", "org_lat"),  # (lng, lat)
+    dest_loc_cols: Optional[Tuple[str, str]] = ("dest_lng", "dest_lat"),  # (lng, lat)
     cpu_cores: Optional[int] = max(1, cpu_count() // 2),
     save_drived_products: Optional[bool] = True,
     od_type: Optional[List[str]] = ["type3"],
@@ -384,12 +384,14 @@ def generateOD(
             DataFrame mapping user IDs to home council and IMD quintile info.
         adult_population (pd.DataFrame):
             Contains population counts broken down by council and IMD quintile.
-        org_loc_cols (Tuple[str, str]):
-            Column names for the origin's (longitude, latitude).
-        dest_loc_cols (Tuple[str, str]):
-            Column names for the destination's (longitude, latitude).
         output_dir (str):
             Directory path where all output files will be saved.
+        org_loc_cols (Tuple[str, str], optional):
+            Column names for the origin's (longitude, latitude).
+            Defaults to ("org_lng", "org_lat").
+        dest_loc_cols (Tuple[str, str], optional):
+            Column names for the destination's (longitude, latitude).
+            Defaults to ("dest_lng", "dest_lat").
         cpu_cores (int, optional):
             Number of CPU cores to use for parallel processing. Defaults to half
             of available cores (at least 1).

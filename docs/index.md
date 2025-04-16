@@ -61,6 +61,14 @@ Scales trips accordingly and produces **four different types of Origin-Destinati
     - Type 3: All-day / All trips
     - Type 4: Type 3 minus (Type 1 + Type 2), i.e. non-peak OD flows
 
+In addition to OD matrices, the process also outputs:
+
+    - `trip_points.csv`: Raw GPS trajectories for each trip (with placeholder mode).
+    - `non_agg_stay_points.csv`: All GPS points within detected stay clusters.
+    - `na_flows.csv`: Enhanced trip flows with user-level context (trips per active day, etc.).
+    - `agg_stay_points.csv`: Abstracted stay location data linked to geographic zones.
+
+
 - **Trajectory Processing**
   Analyzes raw and trip data to produce:
     - Granular trip data with trajectory points.
