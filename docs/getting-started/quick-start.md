@@ -61,7 +61,23 @@ stdf = getStopNodes(
 # Save to disk
 saveFile(output_dir, 'stop_nodes.csv', stdf)
 ```
-This identifies meaningful places where users stayed for a period of time.
+This step identifies user stop locations based on temporal and spatial clustering of GPS points.
+
+#### 📋 Output: `stop_nodes.csv` Schema
+
+The output file contains one row per detected stay (stop) location. Each row includes:
+
+| Column             | Description                                                             |
+|--------------------|-------------------------------------------------------------------------|
+| `uid`              | Unique identifier for the user                                          |
+| `org_lng`          | Longitude of the centroid of the detected stay location                |
+| `org_lat`          | Latitude of the centroid of the detected stay location                 |
+| `datetime`         | Arrival time, when the user first arrived at the stay location        |
+| `leaving_datetime` | Departure time, when the user left the stay location                  |
+
+> ✅ These stop locations are later used to generate trip flows between consecutive stops.
+
+
 
 ## 🧭 Step 4: Generate Trips from Stop Nodes
 
@@ -80,6 +96,29 @@ saveFile(output_dir, 'trip_data.csv', trip_df)
 
 ```
 
+#### 📋 Output: `trip_data.csv` Schema
+
+The output file contains one row per detected trip between two stay locations. Each row includes:
+
+| Column                  | Description                                                                 |
+|--------------------------|-----------------------------------------------------------------------------|
+| `uid`                   | Unique identifier for the user                                              |
+| `org_lat`               | Latitude of the origin stay location centroid                               |
+| `org_lng`               | Longitude of the origin stay location centroid                              |
+| `org_arival_time`       | Time when the user arrived at the origin stay location                      |
+| `org_leaving_time`      | Time when the user left the origin stay location                            |
+| `dest_lat`              | Latitude of the destination stay location centroid                          |
+| `dest_lng`              | Longitude of the destination stay location centroid                         |
+| `dest_arival_time`      | Time when the user arrived at the destination stay location                 |
+| `stay_points`           | All GPS points within the origin stay location cluster                      |
+| `trip_points`           | Trajectory points generated during the trip between two stay locations      |
+| `trip_time`             | Total duration of the trip                                                  |
+| `stay_duration`         | Duration the user stayed at the origin location (detected using scikit-mobility) |
+| `observed_stay_duration`| Duration inferred based on GPS points within the stay location              |
+
+> 🧭 These trips are the basis for later mode classification and OD matrix generation.
+
+
 ## 📊 Step 5: Calculate Activity Statistics
 
 ```python
@@ -95,7 +134,18 @@ activity_df = getActivityStats(
 # Save to disk
 saveFile(output_dir, 'activity_stats.csv', activity_df)
 ```
-This helps weight the users' trips based on their active status in the data.
+#### 📋 Output: `activity_stats.csv` Schema
+
+The output file contains activity statistics per user, aggregated by month. Each row includes:
+
+| Column              | Description                                                                 |
+|---------------------|-----------------------------------------------------------------------------|
+| `uid`              | Unique identifier for the user                                              |
+| `month`            | Month in `YYYY-MM` format                                                   |
+| `total_active_days`| Total number of days the user was observed active in that month             |
+
+> 📊 This information is later used to weight users' trip contributions when generating OD matrices.
+
 
 ## 🗺️ Step 6: Generate OD Matrices
 
@@ -128,6 +178,97 @@ This produces four types of OD matrices using demographic and activity-based wei
  - **Type 2:** PM peak (4–7pm)
  - **Type 3:** All-day
  - **Type 4:** Non-peak (Type 3 − Type 1 & 2)
+
+#### 📋 Output: `od_matrix_type_X.csv` Schema
+
+The output file contains Origin-Destination (OD) pairs with associated trip counts and scaled values. Each row represents a unique OD pair for a given time window (e.g., AM peak, PM peak, etc.).
+
+| Column                  | Description                                                                 |
+|--------------------------|-----------------------------------------------------------------------------|
+| `origin_geo_code`       | Geographic code of the origin area (e.g., data zone, LSOA, MSOA)            |
+| `destination_geo_code`  | Geographic code of the destination area                                     |
+| `trips`                 | Number of detected trips in the raw GPS data                                |
+| `activity_weighted`     | Trips scaled to population using activity-based user weighting              |
+| `council_weighted_trips`| Trips scaled using council-level and IMD adult population weights                   |
+| `act_cncl_weighted_trips`| Trips scaled using both activity-based and council-level weights           |
+| `percentage`            | Share of trips for this OD pair relative to all trips in the region         |
+
+> 📌 Multiple OD matrix files are generated (AM, PM, all-day, non-peak), each following this schema.
+
+#### 📦 Additional Outputs from `generateOD()`
+
+In addition to OD matrices, the `generateOD()` function produces the following five datasets by default:
+
+---
+
+##### 1. `trip_points.csv`
+
+This file contains detailed trajectory points for each detected trip and includes:
+
+| Column              | Description                                                                 |
+|---------------------|-----------------------------------------------------------------------------|
+| `uid`              | Unique identifier for the user                                              |
+| `imd_quintile`     | IMD quintile of the user's home location                                    |
+| `trip_id`          | Unique identifier for the trip                                              |
+| `trip_points`      | List of GPS points forming the trajectory between origin and destination    |
+| `total_active_days`| Number of days the user was active in the dataset                           |
+| `travel_mode`      | Placeholder column (mode not yet detected at this stage)                    |
+
+---
+
+##### 2. `non_agg_stay_points.csv`
+
+This file lists all GPS points within the detected stay location clusters for each user:
+
+| Column                  | Description                                                            |
+|--------------------------|------------------------------------------------------------------------|
+| `uid`                   | Unique identifier for the user                                         |
+| `imd_quintile`          | IMD quintile of the user's home location                               |
+| `stay_points`           | List of GPS points within the stay location cluster                    |
+| `stop_node_arival_time` | Time when the user arrived at the stay location                        |
+| `stop_node_leaving_time`| Time when the user left the stay location                              |
+| `stay_duration`         | Duration of stay at the location                                       |
+| `centroid_lat`          | Latitude of the stay location centroid                                 |
+| `centroid_lng`          | Longitude of the stay location centroid                                |
+| `total_active_days`     | Number of active days for the user                                     |
+
+---
+
+##### 3. `na_flows.csv`
+
+Unlike the trip flows from Step 4, this dataset includes additional user-level attributes:
+
+| Column              | Description                                                                 |
+|---------------------|-----------------------------------------------------------------------------|
+| `uid`              | Unique identifier for the user                                              |
+| `imd_quintile`     | IMD quintile of the user's home location                                    |
+| `trip_id`          | Unique trip ID                                                              |
+| `org_lat`          | Latitude of the origin stay location                                        |
+| `org_lng`          | Longitude of the origin stay location                                       |
+| `org_arival_time`  | Time of arrival at the origin stay location                                 |
+| `org_leaving_time` | Time of departure from the origin stay location                             |
+| `dest_lat`         | Latitude of the destination stay location                                   |
+| `dest_lng`         | Longitude of the destination stay location                                  |
+| `dest_arival_time` | Time of arrival at the destination stay location                            |
+| `total_trips`      | Total number of trips detected for the user                                 |
+| `total_active_days`| Number of active days for the user                                          |
+| `tpad`             | Trips per active day (`total_trips / total_active_days`)                    |
+| `travel_mode`      | Placeholder column (mode not yet detected)                                  |
+
+---
+
+##### 4. `agg_stay_points.csv`
+
+This abstracted version of stay point data assigns each detected stop to a geographic zone (`geo_code`), making it less sensitive:
+
+| Column                  | Description                                                             |
+|--------------------------|-------------------------------------------------------------------------|
+| `imd_quintile`          | IMD quintile of the user's home location                                |
+| `stop_node_geo_code`    | Geographic zone code where the stop was detected                        |
+| `stop_node_arival_time` | Time of arrival at the stay location                                    |
+| `stop_node_leaving_time`| Time of departure from the stay location                                |
+| `stay_duration`         | Duration of stay at the location                                        |
+
 
 ## 📌 Notes on Required Input Files
 
