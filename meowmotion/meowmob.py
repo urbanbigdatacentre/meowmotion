@@ -60,6 +60,7 @@ def getStopNodes(
     del results  # Deleting the results to free up the memory
     stdf.rename(columns={"lat": "org_lat", "lng": "org_lng"}, inplace=True)
     stdf = pd.DataFrame(stdf)
+    stdf = stdf.drop(columns=["impression_acc"])
     print(f"{datetime.now()} Stop Node Detection Completed\n")
     return stdf
 
