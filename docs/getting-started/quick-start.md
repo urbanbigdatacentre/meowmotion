@@ -573,11 +573,29 @@ Each shapefile must:
 
 
 ## ✅ You're Done!
-🎉 You've successfully completed the MeowMotion core pipeline!
 
-You now have:
+🎉 Congratulations! You've successfully completed the **MeowMotion** core pipelines.
 
- - Cleaned and filtered GPS data
- - Detected stop nodes
- - Generated trip-level flows
- - Scaled OD matrices for advanced mobility analysis
+By now, you have:
+
+- ✅ Cleaned and filtered raw GPS data.
+- ✅ Detected user **stop nodes** based on spatial and temporal patterns.
+- ✅ Generated **trip-level flows** between detected stop nodes.
+- ✅ Scaled trips to population levels by producing multiple **OD matrices**.
+- ✅ Produced additional datasets such as **trip points**, **stay points**, and **user activity statistics**.
+- ✅ Performed **feature engineering** by integrating public transport stops and green space data.
+- ✅ Built **movement statistics** and processed trips for modeling.
+- ✅ Predicted **travel modes** for each trip using pre-trained ML models.
+
+Your outputs are ready for:
+
+- 📊 OD-based mobility analysis
+- 🛣️ Transport planning and policy simulations
+- 🚦 Travel behavior studies
+- 🧠 Further machine learning or custom model training
+
+---
+
+> 📚 For deeper details, tutorials, or API references, head over to the full [MeowMotion Documentation](https://faraz-m-awan.github.io/meowmotion/).
+
+🐾 **Happy analyzing with MeowMotion!**
