@@ -489,6 +489,82 @@ def modePredict(
     shape_file: str,
     output_dir: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Predicts travel modes for every trip, attaches the predictions to point-level data,
+    derives origin/destination geographic codes via spatial join, and (optionally) saves
+    both non-aggregated and aggregated results to disk.
+
+    Workflow
+    --------
+    1. Load a fitted classification model and its label encoder from *artifacts_dir*.
+    2. Read the study area shapefile (e.g., LSOAs) and project it to WGS 84 (EPSG 4326).
+    3. Select the required feature columns from *stats_agg_data* and compute the calendar
+       month (mode per trip to handle month roll-overs).
+    4. Generate travel-mode predictions and merge them back to *processed_non_agg_data*
+       (point-level).
+    5. Perform two spatial joins to add `origin_geo_code` and `destination_geo_code`
+       based on the trip’s origin and destination coordinates.
+    6. Create a unique `trip_id` (`trip_num`) for downstream use.
+    7. Build an aggregated DataFrame (`agg_op_df`) that counts trips by
+       `(origin_geo_code, destination_geo_code, travel_mode)`.
+    8. If *output_dir* is supplied, write the non-aggregated and aggregated CSV files to
+       `<output_dir>/predictions/`.
+
+    Args
+    ----
+    artifacts_dir : str
+        Directory containing the trained model **(.joblib)** and label encoder.
+    model_file_name : str
+        Filename of the saved model (e.g., ``"decision_tree.pkl"``).
+    le_file_name : str
+        Filename of the fitted `LabelEncoder` (e.g., ``"label_encoder.joblib"``).
+    processed_non_agg_data : pd.DataFrame
+        Point-level dataset produced by the feature-engineering pipeline. It must contain
+        columns listed in the in-function selector (speed, jerk, flags, etc.).
+    stats_agg_data : pd.DataFrame
+        Trip-level statistics (one row per trip) that provide the predictor variables
+        used by the model.
+    shape_file : str
+        Path to a polygon shapefile used to derive `origin_geo_code` and
+        `destination_geo_code` via spatial joins.
+    output_dir : str, optional
+        If provided, CSV files are written to ``<output_dir>/predictions``; otherwise,
+        nothing is written to disk.
+
+    Returns
+    -------
+    Tuple[pd.DataFrame, pd.DataFrame]
+        *op_df* :
+            Point-level DataFrame with columns
+
+            ``["trip_id", "origin_geo_code", "destination_geo_code",
+               "tp_lat", "tp_lng", "datetime", "travel_mode"]``
+
+        *agg_op_df* :
+            Aggregated DataFrame where each row is an
+            ``(origin_geo_code, destination_geo_code, travel_mode)`` combination
+            with the corresponding trip count.
+
+    Example
+    -------
+    ```python
+    op_df, agg_df = modePredict(
+        artifacts_dir="artifacts",
+        model_file_name="xgb_model.joblib",
+        le_file_name="label_encoder.joblib",
+        processed_non_agg_data=trip_points_df,
+        stats_agg_data=traj_stats_df,
+        shape_file="data/shapes/lsoa.shp",
+        output_dir="outputs"
+    )
+
+    # point-level preview
+    print(op_df.head())
+
+    # aggregated flows by mode
+    print(agg_df.head())
+    ```
+    """
 
     print(f"{datetime.now()}: Loading Model and Encoder")
     model = joblib.load(f"{artifacts_dir}/{model_file_name}")
