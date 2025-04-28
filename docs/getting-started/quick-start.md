@@ -471,9 +471,104 @@ op_df, agg_op_df = modePredict(
 
 ---
 
-### ✅ Output
+### 📋 Output: Travel Mode Detection Results
+
+After running the Travel Mode Detection pipeline, two types of outputs are generated:
+
+---
+
+#### 🗺️ Aggregated Output — Travel Mode Matrix
+
+Each row represents a unique origin-destination (OD) pair with counts of trips detected by travel mode.
+
+| Column             | Description                                           |
+|--------------------|-------------------------------------------------------|
+| `origin_geo_code`  | Geographic code of the trip origin area               |
+| `destination_geo_code` | Geographic code of the trip destination area      |
+| `bicycle`          | Number of trips detected as Bicycle trips             |
+| `bus`              | Number of trips detected as Bus trips                 |
+| `car`              | Number of trips detected as Car trips                 |
+| `train`            | Number of trips detected as Train trips               |
+| `walk`             | Number of trips detected as Walk trips                |
+
+> 🚲 🚍 🚗 🚆 🚶 Aggregated results help analyze transport mode distribution between OD pairs across the study area.
+
+---
+
+#### 🧭 Non-Aggregated Output — Detected Travel Mode for Each Trip
+
+This file contains detailed trip-level detection results for each GPS trajectory point associated with a trip.
+
+| Column             | Description                                           |
+|--------------------|-------------------------------------------------------|
+| `trip_id`          | Unique identifier for the trip                        |
+| `origin_geo_code`  | Geographic code of the trip's origin                  |
+| `destination_geo_code` | Geographic code of the trip's destination         |
+| `tp_lat`           | Latitude of the trajectory point                      |
+| `tp_lng`           | Longitude of the trajectory point                     |
+| `datetime`         | Timestamp of the trajectory point                     |
+| `travel_mode`      | Predicted transport mode at the trajectory point       |
+
+> 🧠 This detailed file allows fine-grained analysis of mode-switching behavior within trips or validation against high-resolution GPS tracks.
 
 
+### 📌 Notes on Required Input Files
+
+The **Travel Mode Detection** pipeline uses multiple shapefiles to extract spatial characteristics of the trips.
+
+Each shapefile must:
+
+- Use **EPSG:4326 (WGS84)** coordinate system.
+- Contain appropriate geometry (`POINT` buffers or `POLYGON` areas) for spatial analysis.
+
+---
+
+#### 🚌 Bus Stops Shapefile
+
+| stop_id | lng        | lat        | geometry                          |
+|---------|------------|------------|-----------------------------------|
+| bs_001  | -4.259865   | 55.857296  | POLYGON ((-4.25939 55.85730, ...)) |
+| bs_002  | -4.258346   | 55.861953  | POLYGON ((-4.25787 55.86196, ...)) |
+
+- `lng` and `lat` are the **exact coordinates** of each bus stop.
+- `geometry` defines a **30-meter buffer polygon** around the stop (configurable as needed).
+
+---
+
+#### 🚇 Metro Stations Shapefile
+
+| stop_id | lng        | lat        | geometry                          |
+|---------|------------|------------|-----------------------------------|
+| ms_001  | -4.258553   | 55.852036  | POLYGON ((-4.25807 55.85204, ...)) |
+| ms_002  | -4.294267   | 55.852112  | POLYGON ((-4.29379 55.85212, ...)) |
+
+- Similar to bus stops, metro stations use point coordinates and buffered areas.
+
+---
+
+#### 🚆 Train Stations Shapefile
+
+| stop_id | lng        | lat        | geometry                          |
+|---------|------------|------------|-----------------------------------|
+| ts_001  | -4.269514   | 55.864641  | POLYGON ((-4.26903 55.86465, ...)) |
+| ts_002  | -4.283278   | 55.861438  | POLYGON ((-4.28280 55.86145, ...)) |
+
+---
+
+#### 🌳 Green Spaces Shapefile
+
+| gsp_id  | geometry                             |
+|---------|--------------------------------------|
+| gs_001  | POLYGON Z ((219216.711 666579.172 ...)) |
+| gs_002  | POLYGON Z ((219243.240 666760.324 ...)) |
+
+- Green space shapefiles **do not** have `lng` or `lat` columns.
+- They consist only of **polygon geometries** representing parks, fields, or natural areas.
+- Make sure polygons are valid and CRS is correctly set.
+
+---
+
+> 📌 These shapefiles help the model understand whether trips interact with transport networks (stops, stations) or land-use features (parks, green spaces).
 
 
 
