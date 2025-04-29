@@ -148,6 +148,58 @@ def readRawData(
 
 
 def processData(df: pd.DataFrame, shape_files: List[gpd.GeoDataFrame]) -> pd.DataFrame:
+    """
+    Cleans and enriches raw trip-point data with motion-related features
+    (speed, acceleration, jerk, bearing, angular deviation, straightness
+    index) and contextual flags indicating proximity to public-transport
+    stops or green spaces.
+
+    The function operates **per trip** (``uid``–``trip_id``):
+      1. Removes duplicate timestamps and drops trips with fewer than
+         five distinct observations (``num_of_impressions`` < 5).
+      2. Computes time deltas, inter-point distance (haversine), speed,
+         speed z-scores, acceleration, and jerk, replacing extreme
+         speed outliers (|z| ≥ 3) with the median speed.
+      3. Derives temporal attributes—calendar month, hour of day,
+         weekend flag, and a four-level ``hour_category``
+         (0 Night, 1 Morning, 2 Afternoon, 3 Evening).
+      4. For each trip, determines whether the first and/or last point
+         lies within
+         • a **bus stop** (shape_files[0])
+         • a **train station** (shape_files[1])
+         • a **metro station** (shape_files[2])
+         and whether **≥ 5 points** fall inside a **green space**
+         polygon (shape_files[3]).
+      5. Calculates a straightness index (straight-line ÷ actual path
+         length) and removes trips with an index > 1 (spurious data).
+
+    Args:
+        df (pd.DataFrame): Point-level trip data containing at least
+            ``["uid", "trip_id", "lat", "lng", "datetime"]``.
+        shape_files (List[gpd.GeoDataFrame]): A list of four
+            GeoDataFrames **in this order**:
+            ``[bus_stops_gdf, train_stops_gdf, metro_stops_gdf,
+            green_space_gdf]``.  Each must use CRS EPSG 4326.
+
+    Returns:
+        pd.DataFrame: The cleaned and feature-rich DataFrame, one row
+        per retained point, including new columns such as
+
+        * ``num_of_impressions`` • ``time_taken`` • ``distance_covered``
+        * ``speed`` • ``speed_z_score`` • ``new_speed``
+        * ``accelaration`` • ``jerk``
+        * ``bearing`` • ``angular_deviation``
+        * ``month`` • ``hour`` • ``is_weekend`` • ``hour_category``
+        * ``start_end_at_bus_stop`` / ``train_stop`` / ``metro_stop``
+        * ``found_at_green_space`` • ``straightness_index``
+
+    Example:
+        >>> processed = processData(raw_trip_df, [
+        ...     bus_stops_gdf, train_stops_gdf, metro_stops_gdf,
+        ...     green_space_gdf
+        ... ])
+        >>> processed.head()
+    """
     temp_df = df.copy()
 
     # In some trips, for very same timestamp, we observed multiple datapoints. To deal with that, dropping all the duplicate timestamps and keeping the first one
