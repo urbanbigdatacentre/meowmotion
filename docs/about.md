@@ -6,7 +6,7 @@
 
 ## 🧪 Development and Funding
 
-**MeowMotion** was developed at the [Urban Big Data Centre (UBDC)](https://www.ubdc.ac.uk/), a research centre dedicated to advancing the use of data and technology to address urban challenges.
+**MeowMotion** was developed by [Dr. Faraz Awan](https://www.farazawan.com) at the [Urban Big Data Centre (UBDC)](https://www.ubdc.ac.uk/), a research centre dedicated to advancing the use of data and technology to address urban challenges.
 
 UBDC is jointly funded by the **Economic and Social Research Council (ESRC)** and the **University of Glasgow**, under the following ESRC grants:
 
