@@ -367,37 +367,34 @@ def trainMLModel(
     output_dir: Optional[str] = None,
 ) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Trains a supervised classifier (decision-tree or random-forest) to predict
-    travel mode from trip-level statistics, applies SMOTE to balance classes,
-    evaluates on a separate validation set, and optionally persists the model
-    and label-encoder to disk.
+    Trains a supervised classifier (decision-tree or random-forest) to predict travel mode
+    from trip-level statistics. Applies SMOTE to balance classes, evaluates on a separate
+    validation set, and optionally persists the model and label-encoder to disk.
 
     Args:
         df_tr (pd.DataFrame):
-            Training set returned by :pyfunc:`processTrainingData`. Must include
-            the feature columns listed in *tr_cols* (see below) plus a
-            categorical ``transport_mode`` column.
+            Training set returned by `processTrainingData`. Must include the feature columns
+            listed in `tr_cols` plus a categorical `transport_mode` column.
         df_val (pd.DataFrame):
-            Validation set with the same schema as *df_tr*.
+            Validation set with the same schema as `df_tr`.
         model_name (str):
-            Either ``"decision_tree"`` or ``"random_forest"`` (case-sensitive).
-        output_dir (str, optional):
+            Either "decision_tree" or "random_forest" (case-sensitive).
+        output_dir (Optional[str], optional):
             If supplied, the fitted model is saved to
-            ``<output_dir>/artifacts/{model_name}_model.joblib`` and the
-            `LabelEncoder` to ``label_encoder.joblib`` within the same folder.
+            `<output_dir>/artifacts/{model_name}_model.joblib` and the LabelEncoder to
+            `label_encoder.joblib` in the same folder.
 
     Returns:
         Tuple[float, np.ndarray, np.ndarray, np.ndarray]:
-            * **accuracy** – Overall classification accuracy on the
-              validation set.
-            * **precision** – Per-class precision scores.
-            * **recall** – Per-class recall scores.
-            * **cm** – Confusion-matrix array (shape: *n_classes × n_classes*).
+            A tuple containing:
+            - accuracy (float): Overall classification accuracy on the validation set.
+            - precision (np.ndarray): Per-class precision scores.
+            - recall (np.ndarray): Per-class recall scores.
+            - cm (np.ndarray): Confusion matrix of shape (n_classes, n_classes).
 
     Notes:
         The feature vector comprises 21 columns:
-
-        ``[
+        [
             "month", "speed_median", "speed_pct_95", "speed_std",
             "acceleration_median", "acceleration_pct_95", "acceleration_std",
             "jerk_median", "jerk_pct_95", "jerk_std",
@@ -406,22 +403,24 @@ def trainMLModel(
             "start_end_at_bus_stop", "start_end_at_train_stop",
             "start_end_at_metro_stop", "found_at_green_space",
             "is_weekend", "hour_category"
-        ]``
+        ]
 
-        *SMOTE* (Synthetic Minority Over-sampling Technique) is applied on the
-        training split only.
+        SMOTE (Synthetic Minority Over-sampling Technique) is applied to the training set only.
 
     Example:
-        >>> acc, prec, rec, cm = trainMLModel(
-        ...     df_tr=train_stats,
-        ...     df_val=val_stats,
-        ...     model_name="random_forest",
-        ...     output_dir="outputs"
-        ... )
-        >>> print(f"Accuracy: {acc:.3f}")
-        >>> print("Precision per class:", prec)
-        >>> print("Recall per class:", rec)
-        >>> print("Confusion matrix:\n", cm)
+        ```python
+        acc, prec, rec, cm = trainMLModel(
+            df_tr=train_stats,
+            df_val=val_stats,
+            model_name="random_forest",
+            output_dir="outputs"
+        )
+
+        print(f"Accuracy: {acc:.3f}")
+        print("Precision per class:", prec)
+        print("Recall per class:", rec)
+        print("Confusion matrix:\\n", cm)
+        ```
     """
 
     if model_name not in ["decision_tree", "random_forest"]:
