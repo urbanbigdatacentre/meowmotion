@@ -17,15 +17,55 @@ from skmob.preprocessing import filtering
 
 def readJsonFiles(root: str, month_file: str) -> pd.DataFrame:
     """
-    Reads gzipped JSON files from a zip archive and extracts relevant fields into a DataFrame.
+    Load a month-worth of impression records stored as *gzipped JSON-Lines*
+    inside a ZIP archive and return them as a tidy DataFrame.
 
-    Parameters:
-        root (str): Directory containing the zip file.
-        month_file (str): Name of the zip file.
+    Data-at-Rest Format
+    -------------------
+    The function expects the following directory / file structure:
+
+    ``root/
+        2023-01.zip              # <- month_file argument
+            2023-01-01-00.json.gz
+            2023-01-01-01.json.gz
+            ...
+            2023-01-31-23.json.gz
+    ```
+
+    * Each ``.json.gz`` file is a **JSON-Lines** file (one JSON object per line).
+    * Every JSON object is expected to contain at least these keys:
+
+      - ``impression_acc``  (float) – GNSS accuracy (metres)
+      - ``device_iid_hash`` (str)   – Anonymised user or device ID
+      - ``impression_lng``  (float) – Longitude in WGS-84
+      - ``impression_lat``  (float) – Latitude  in WGS-84
+      - ``timestamp``       (str/int) – ISO-8601 string *or* Unix epoch (ms)
+
+    The loader iterates through each ``.json.gz`` in the archive, parses every
+    line, and extracts the subset of fields listed above.
+
+    Args:
+        root (str):
+            Path to the directory that contains *month_file* (e.g.
+            ``"/data/impressions"``).
+        month_file (str):
+            Name of the ZIP archive to read
+            (e.g. ``"2023-01.zip"`` or ``"london_2024-06.zip"``).
 
     Returns:
-        pd.DataFrame: DataFrame containing the extracted JSON data.
+        pandas.DataFrame:
+            Columns → ``["impression_acc", "uid", "lng", "lat", "datetime"]``
+            One row per JSON object across all ``.json.gz`` files in the archive.
+
+    Example:
+        >>> df = readJsonFiles("/data/impressions", "2023-01.zip")
+        >>> df.head()
+             impression_acc             uid        lng        lat             datetime
+        0              6.5  a1b2c3d4e5f6g7h8  -0.12776   51.50735   2023-01-01T00:00:10Z
+        1              4.8  h8g7f6e5d4c3b2a1  -0.12800   51.50720   2023-01-01T00:00:11Z
+        ...
     """
+
     print(f"{datetime.now()}: Processing {month_file}")
 
     data = []
@@ -59,30 +99,40 @@ def getFilteredData(
     cpu_cores: Optional[int] = max(1, int(cpu_count() / 2)),
 ) -> TrajDataFrame:
     """
-    Description:
-        This function filters trajectory data based on two criteria:
-         1. Impression accuracy (removing records above a specified accuracy threshold).
-         2. Speed between consecutive GPS points (removing unrealistically fast points).
+    Parallel, two–stage cleansing of raw impression data that
 
-        To improve performance, the data is split into multiple buckets (using getLoadBalancedBuckets)
-        and each bucket is processed in parallel using Python's multiprocessing.
+    1. **drops points whose GNSS accuracy** (``impression_acc``) exceeds the
+       user-specified threshold, and
+    2. **removes physically implausible jumps** using scikit-mob’s
+       :pyfunc:`skmob.preprocessing.filtering.filter`
+       (``max_speed_kmh=200`` by default).
 
-    Parameters:
-        df (pd.DataFrame): The DataFrame containing trajectory data with columns
-            ['uid', 'datetime', 'lat', 'lng', 'impression_acc'].
-        impr_acc (int, optional): The impression accuracy threshold. Defaults to 100.
-        cpu_cores (int, optional): The number of CPU cores to utilize for multiprocessing.
-            Defaults to half the available cores (at least 1).
+    The work is split into load-balanced buckets and processed concurrently
+    with :pyclass:`multiprocessing.Pool`.
+
+    Args:
+        df (pd.DataFrame):
+            Point-level impressions with *at least* the columns
+            ``["uid", "lat", "lng", "datetime", "impression_acc"]``
+            (plus any additional attributes you want to keep).
+        impr_acc (int, optional):
+            Maximum allowed GNSS accuracy in **metres**. Points with a larger
+            ``impression_acc`` are discarded. Defaults to ``100``.
+        cpu_cores (int, optional):
+            Number of CPU cores to devote to multiprocessing. By default, half
+            of the available logical cores (but at least 1).
 
     Returns:
-        TrajDataFrame: A TrajDataFrame containing the filtered trajectory data.
+        TrajDataFrame:
+            A scikit-mob ``TrajDataFrame`` containing only points that pass
+            both the accuracy and speed filters, with its original columns
+            preserved.
 
     Example:
-        >>> from meowmotion.process_data import getFilteredData
-        >>> import pandas as pd
-        >>> df = pd.read_csv('path/to/trajectory_data.csv', parse_dates=['datetime'])
-        >>> filtered_data = getFilteredData(df, impr_acc=50, cpu_cores=4)
+        >>> clean_traj = getFilteredData(raw_df, impr_acc=50, cpu_cores=8)
+        >>> print(clean_traj.shape)
     """
+
     print(f"{datetime.now()}: Filtering data based on impression accuracy={impr_acc}")
     print(f"{datetime.now()}: Creating buckets for multiprocessing")
     tdf_collection = getLoadBalancedBuckets(df, cpu_cores)
@@ -155,21 +205,46 @@ def filterData(df: pd.DataFrame, impr_acc: int) -> TrajDataFrame:
 
 def getLoadBalancedBuckets(tdf: pd.DataFrame, bucket_size: int) -> list:
     """
-    Description:
-        Multiprocessing is being used for processing the data for Stop node detection and flow generation.
-        This Funcition devides the data based on the UID and Number of Impressions in a way that load on
-        every processor core being used is well-balanced.
+    Partition a user-level DataFrame into *bucket_size* sub-DataFrames whose
+    total row counts (i.e. number of “impressions”) are as evenly balanced as
+    possible.  Each bucket can then be processed in parallel on its own CPU
+    core.
 
-    Parameters:
-        tdf (pd.DataFrame): Trajectory DataFrame containing the data to be processed.
-        bucket_size (int): Number of CPU Cores to be used for processing the data.
+    Algorithm
+    ---------
+    1. Count the number of rows (“impressions”) for every unique ``uid``.
+    2. Sort users in descending order of impression count.
+    3. Greedily assign each user to the bucket that currently has the
+       **smallest** total number of impressions (*load-balancing heuristic*).
+    4. Build one DataFrame per bucket containing only the rows for the users
+       assigned to that bucket.
+    5. Return the list of non-empty bucket DataFrames.
+
+    Args:
+        tdf (pd.DataFrame):
+            A DataFrame that **must contain a ``"uid"`` column** plus any other
+            fields.  Each row represents one GPS impression or point.
+        bucket_size (int):
+            The desired number of buckets—typically equal to the number of CPU
+            cores you plan to use with :pyclass:`multiprocessing.Pool`.
 
     Returns:
-        list: List of Trajectory DataFrames. Each DataFrame will be processed in a seperate core as a seperate process.
+        list[pd.DataFrame]:
+            A list whose length is **≤ *bucket_size***.  Each element is a
+            DataFrame containing a disjoint subset of users such that the
+            cumulative row counts across buckets are approximately balanced.
+            Empty buckets are omitted.
 
     Example:
-        >>> getLoadBalancedBuckets(tdf,bucket_size=8)
-        [df1,df2,df3,df4,df5,df6,df7,df8]
+        >>> buckets = getLoadBalancedBuckets(raw_points_df, bucket_size=8)
+        >>> for i, bucket_df in enumerate(buckets, start=1):
+        ...     print(f"Bucket {i}: {len(bucket_df):,} rows "
+        ...           f"({bucket_df['uid'].nunique()} users)")
+
+    Note:
+        The function is designed for *embarrassingly parallel* workloads where
+        each user’s data can be processed independently (e.g. feature
+        extraction or filtering).
     """
 
     print(f"{datetime.now()}: Getting unique users")
@@ -221,20 +296,22 @@ def getLoadBalancedBuckets(tdf: pd.DataFrame, bucket_size: int) -> list:
 
 def saveFile(path: str, fname: str, df: pd.DataFrame) -> None:
     """
-    Description:
-        This function saves the DataFrame into a CSV file. If the directory does not exist,
-        it will create the directory.
+    Write a pandas DataFrame to a **CSV** file, creating the target directory
+    if it does not already exist.
 
-    Parameters:
-        path (str): Path where the file is to be saved.
-        fname (str): Name of the file.
-        df (pd.DataFrame): DataFrame to be saved.
+    Args:
+        path (str): Folder in which to store the file
+            (e.g. ``"outputs/predictions"``).
+        fname (str): Name of the CSV file to create
+            (e.g. ``"trip_points.csv"``).
+        df (pd.DataFrame): The DataFrame to be saved.
 
     Returns:
         None
 
     Example:
-        >>> saveFile('path\\to\\directory','stop_nodes.csv',stdf)
+        >>> saveFile("outputs", "clean_points.csv", clean_df)
+        # → file written to outputs/clean_points.csv
     """
 
     if not os.path.exists(path):
@@ -250,6 +327,52 @@ def spatialJoin(
     lat_col: str,
     loc_type: str,  # 'origin' or 'destination'
 ):
+    """
+    Spatially joins point data (supplied in *df*) to polygon features
+    (supplied in *shape*) and appends the polygon’s code and name as new
+    columns that are prefixed with the provided *loc_type*.
+
+    Workflow:
+        1. Convert each ``(lng_col, lat_col)`` pair into a Shapely
+           :class:`Point` and wrap *df* into a GeoDataFrame (CRS = EPSG 4326).
+        2. Perform a left, *intersects*-based spatial join with *shape*.
+        3. Rename ``"geo_code" → f"{loc_type}_geo_code"`` and
+           ``"name" → f"{loc_type}_name"``.
+        4. Drop internal join artefacts (``index_right`` and the point
+           ``geometry``) and return a plain pandas DataFrame.
+
+    Args:
+        df (pd.DataFrame):
+            Point-level DataFrame containing longitude and latitude columns
+            specified by *lng_col* and *lat_col*.
+        shape (gpd.GeoDataFrame):
+            Polygon layer with at least the columns
+            ``["geo_code", "name", "geometry"]`` (e.g. LSOAs, census tracts).
+            Must be in CRS WGS-84 (EPSG 4326) or convertible as such.
+        lng_col (str): Name of the longitude column in *df*.
+        lat_col (str): Name of the latitude column in *df*.
+        loc_type (str): Prefix for the new columns—commonly ``"origin"`` or
+            ``"destination"``.
+
+    Returns:
+        pd.DataFrame: A copy of *df* with two new columns:
+
+        * ``f"{loc_type}_geo_code"``
+        * ``f"{loc_type}_name"``
+
+        Rows that do not intersect any polygon will contain ``NaN`` in these
+        columns.
+
+    Example:
+        >>> enriched_df = spatialJoin(
+        ...     df=trip_points,
+        ...     shape=lsoa_gdf,
+        ...     lng_col="org_lng",
+        ...     lat_col="org_lat",
+        ...     loc_type="origin"
+        ... )
+        >>> enriched_df[["origin_geo_code", "origin_name"]].head()
+    """
 
     geometry = [Point(xy) for xy in zip(df[lng_col], df[lat_col])]
     geo_df = gpd.GeoDataFrame(df, geometry=geometry, crs="EPSG:4326")

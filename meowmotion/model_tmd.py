@@ -23,20 +23,53 @@ from meowmotion.process_data import spatialJoin
 
 def processTrainingData(data: pd.DataFrame) -> pd.DataFrame:
     """
-    This function processes the training data by filtering out invalid records,
-    removing outliers, and generating statistics.
-    It also splits the data into training and validation sets.
+    Cleans, filters, and splits labelled trajectory data into *training* and
+    *validation* (testing) sets, then derives trip-level statistics for each set
+    using :pyfunc:`generateTrajStats`.
+
+    The procedure applies several rule-based steps:
+
+    1. **Confidence filtering** – Drops records whose
+       ``maximum_match_confidence`` is below a mode-specific threshold
+       (`car`/`walk` < 0.80, `bicycle`/`bus` < 0.60, `train`/`metro` < 0.40).
+    2. **Random split** – Assigns ≈ 33 % of unique
+       ``(installation_id, trip_id, leg_id)`` groups to the validation set;
+       the remainder form the training set.
+    3. **Contextual consistency** – Removes trips where a motorised mode
+       (`car`, `bus`, `train`) is flagged as *found in green space*.
+    4. **Speed outliers** – Eliminates points with ``new_speed`` > 40 m/s.
+    5. **NaN handling** – Fills NaNs in ``accelaration``, ``angular_deviation``,
+       and ``jerk`` with 0.
+    6. **Physical-bounds filtering** – Keeps only points where
+       ``accelaration`` ∈ [–7 m/s², 7 m/s²].
+    7. **Mode whitelist** – Retains only the six canonical modes
+       (`walk`, `bicycle`, `car`, `bus`, `train`, `metro`).
+    8. **Trip-level feature generation** – Calls
+       :pyfunc:`generateTrajStats` to compute statistics, then prunes trips
+       with implausible speed metrics (different rules per mode).
 
     Args:
-        data (pd.DataFrame): The input data to be processed.
+        data (pd.DataFrame):
+            Labelled point-level dataset produced by the feature-engineering
+            pipeline. Must include, at minimum, the columns
+
+            ``["installation_id", "trip_id", "leg_id", "timestamp",
+               "transport_mode", "maximum_match_confidence",
+               "new_speed", "accelaration", "jerk", "angular_deviation",
+               "found_at_green_space"]``
 
     Returns:
-        stat_df (pd.DataFrame): The processed training data with statistics.
-        vald_stat_df (pd.DataFrame): The processed validation data with statistics.
+        Tuple[pd.DataFrame, pd.DataFrame]:
+            **stat_df** – Cleaned *training* DataFrame of trip-level
+            statistics.
+
+            **vald_stat_df** – Cleaned *validation* DataFrame of trip-level
+            statistics.
 
     Example:
-        >>> stat_df, vald_stat_df = processTrainingData(data)
-
+        >>> train_stats, val_stats = processTrainingData(labelled_points_df)
+        >>> train_stats.head()
+        >>> val_stats.head()
     """
 
     proc_data = data.copy()
@@ -333,6 +366,64 @@ def trainMLModel(
     model_name: str,
     output_dir: Optional[str] = None,
 ) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Trains a supervised classifier (decision-tree or random-forest) to predict
+    travel mode from trip-level statistics, applies SMOTE to balance classes,
+    evaluates on a separate validation set, and optionally persists the model
+    and label-encoder to disk.
+
+    Args:
+        df_tr (pd.DataFrame):
+            Training set returned by :pyfunc:`processTrainingData`. Must include
+            the feature columns listed in *tr_cols* (see below) plus a
+            categorical ``transport_mode`` column.
+        df_val (pd.DataFrame):
+            Validation set with the same schema as *df_tr*.
+        model_name (str):
+            Either ``"decision_tree"`` or ``"random_forest"`` (case-sensitive).
+        output_dir (str, optional):
+            If supplied, the fitted model is saved to
+            ``<output_dir>/artifacts/{model_name}_model.joblib`` and the
+            `LabelEncoder` to ``label_encoder.joblib`` within the same folder.
+
+    Returns:
+        Tuple[float, np.ndarray, np.ndarray, np.ndarray]:
+            * **accuracy** – Overall classification accuracy on the
+              validation set.
+            * **precision** – Per-class precision scores.
+            * **recall** – Per-class recall scores.
+            * **cm** – Confusion-matrix array (shape: *n_classes × n_classes*).
+
+    Notes:
+        The feature vector comprises 21 columns:
+
+        ``[
+            "month", "speed_median", "speed_pct_95", "speed_std",
+            "acceleration_median", "acceleration_pct_95", "acceleration_std",
+            "jerk_median", "jerk_pct_95", "jerk_std",
+            "angular_dev_median", "angular_dev_pct_95", "angular_dev_std",
+            "straightness_index", "distance_covered",
+            "start_end_at_bus_stop", "start_end_at_train_stop",
+            "start_end_at_metro_stop", "found_at_green_space",
+            "is_weekend", "hour_category"
+        ]``
+
+        *SMOTE* (Synthetic Minority Over-sampling Technique) is applied on the
+        training split only.
+
+    Example:
+        >>> acc, prec, rec, cm = trainMLModel(
+        ...     df_tr=train_stats,
+        ...     df_val=val_stats,
+        ...     model_name="random_forest",
+        ...     output_dir="outputs"
+        ... )
+        >>> print(f"Accuracy: {acc:.3f}")
+        >>> print("Precision per class:", prec)
+        >>> print("Recall per class:", rec)
+        >>> print("Confusion matrix:\n", cm)
+    """
+
     if model_name not in ["decision_tree", "random_forest"]:
         raise ValueError(
             "model_name should be either 'decision_tree' or 'random_forest'"
