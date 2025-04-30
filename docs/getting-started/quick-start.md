@@ -596,6 +596,6 @@ Your outputs are ready for:
 
 ---
 
-> 📚 For deeper details, tutorials, or API references, head over to the full [MeowMotion Documentation](https://faraz-m-awan.github.io/meowmotion/).
+> 📚 For deeper details, tutorials, or API references, head over to the full [MeowMotion Documentation](https://urbanbigdatacentre.github.io/meowmotion/).
 
 🐾 **Happy analyzing with MeowMotion!**
