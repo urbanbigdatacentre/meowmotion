@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <a href="https://faraz-m-awan.github.io/meowmotion/">📖 Documentation</a> •
+  <a href="https://urbanbigdatacentre.github.io/meowmotion/">📖 Documentation</a> •
   <a href="#installation">🛠 Installation</a> •
   <a href="#quick-start">🚀 Quick Start</a>
 </p>
@@ -15,7 +15,7 @@
   <a href="https://www.python.org/downloads/release/python-311/">
     <img src="https://img.shields.io/badge/python-3.11-blue.svg" alt="Python 3.11">
   </a>
-  <a href="https://faraz-m-awan.github.io/meowmotion/">
+  <a href="https://urbanbigdatacentre.github.io/meowmotion/">
     <img src="https://img.shields.io/badge/docs-online-brightgreen.svg" alt="Documentation">
   </a>
   <a href="https://github.com/faraz-m-awan/meowmotion/blob/main/LICENSE">
@@ -50,7 +50,7 @@ It’s an ideal tool for urban mobility researchers, transport planners, and geo
 
 ## 📖 Full Documentation
 
-👉 **Read the full docs here**: [https://faraz-m-awan.github.io/meowmotion/](https://faraz-m-awan.github.io/meowmotion/)
+👉 **Read the full docs here**: [https://urbanbigdatacentre.github.io/meowmotion/](https://urbanbigdatacentre.github.io/meowmotion/)
 
 The documentation includes:
 
@@ -71,11 +71,11 @@ git clone https://github.com/faraz-m-awan/meowmotion.git
 cd meowmotion
 poetry install
 ```
-> 🔧 For compatibility tips and alternative setups (e.g., using uv), see the [Installation Guide](https://faraz-m-awan.github.io/meowmotion/getting-started/installation/).
+> 🔧 For compatibility tips and alternative setups (e.g., using uv), see the [Installation Guide](https://urbanbigdatacentre.github.io/meowmotion/getting-started/installation/).
 
 ## 🚀 Quick Start
 
-Here’s a minimal pipeline example (see full [Quick Start](https://faraz-m-awan.github.io/meowmotion/getting-started/quick-start/) guide):
+Here’s a minimal pipeline example (see full [Quick Start](https://urbanbigdatacentre.github.io/meowmotion/getting-started/quick-start/) guide):
 
 ```python
 from meowmotion.meowmob import getStopNodes, processFlowGenration, getActivityStats, generateOD
