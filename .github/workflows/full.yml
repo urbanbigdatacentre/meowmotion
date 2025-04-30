@@ -1,0 +1,40 @@
+name: Full CI Workflow
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'mkdocs.yml'
+  workflow_dispatch:
+
+jobs:
+  full-install:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install GDAL system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gdal-bin libgdal-dev
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Configure GDAL environment variables
+        run: |
+          echo "export CPLUS_INCLUDE_PATH=/usr/include/gdal" >> $GITHUB_ENV
+          echo "export C_INCLUDE_PATH=/usr/include/gdal" >> $GITHUB_ENV
+
+      - name: Install all dependencies
+        run: poetry install
+
+      # Optionally add other test/build steps here
