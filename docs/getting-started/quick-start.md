@@ -566,6 +566,7 @@ Each shapefile must:
 - They consist only of **polygon geometries** representing parks, fields, or natural areas.
 - Make sure polygons are valid and CRS is correctly set.
 
+
 ---
 
 > 📌 These shapefiles help the model understand whether trips interact with transport networks (stops, stations) or land-use features (parks, green spaces).
