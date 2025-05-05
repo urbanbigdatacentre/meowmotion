@@ -24,6 +24,9 @@
   <a href="https://www.ubdc.ac.uk/">
     <img src="https://img.shields.io/badge/developed%20by-UBDC-blueviolet" alt="Developed by UBDC">
   </a>
+  <a href="https://doi.org/10.5281/zenodo.15346203">
+    <img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.15346203-blue.svg" alt="DOI">
+  </a>
   <!-- Optional: Build Status -->
   <!--
   <a href="https://github.com/faraz-m-awan/meowmotion/actions">

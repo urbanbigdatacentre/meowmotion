@@ -20,6 +20,9 @@
   <a href="https://www.ubdc.ac.uk/">
     <img src="https://img.shields.io/badge/developed%20by-UBDC-blueviolet" alt="Developed by UBDC">
   </a>
+  <a href="https://doi.org/10.5281/zenodo.15346203">
+    <img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.15346203-blue.svg" alt="DOI">
+  </a>
   <!-- Optional: Build Status -->
   <!--
   <a href="https://github.com/faraz-m-awan/meowmotion/actions">
@@ -89,3 +92,19 @@ In addition to OD matrices, the process also outputs:
   Generates two output datasets:
     - **Non-aggregated trip data** with origin geo code, destination geo code, and predicted travel mode for each trip.
     - **Aggregated summary** showing trip counts between each origin-destination pair, split by transport modes (Walk, Bicycle, Car, Bus, Train, Metro).
+
+---
+
+## 📑 Citation
+If you use MeowMotion in your research, please cite:
+```bibtex
+@software{MeowMotion,
+  author       = {Faraz M. Awan},
+  title        = {{MeowMotion: Detecting Trips, OD Matrices, and Transport Modes from GPS Data}},
+  affiliation  = {Urban Big Data Centre, University of Glasgow},
+  publisher    = {Zenodo},
+  year         = {2024},
+  doi          = {10.5281/zenodo.15346203},
+  url          = {https://doi.org/10.5281/zenodo.15346203}
+}
+```

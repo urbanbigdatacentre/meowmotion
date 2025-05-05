@@ -7,30 +7,32 @@ Welcome to **MeowMotion**, a Python package for detecting trips and transport mo
 
 ---
 
-## 🚀 Clone the Repository
+## 📌 Prerequisites
 
-First, clone the repository locally:
+- **Python 3.11** is recommended for best compatibility.
+- **Poetry** (optional, for source installs):  
+  
+  ```bash
+  pip install poetry
+  ```
+## 🎉 Install via PyPI (Recommended)
+The easiest way to get started is to install directly from PyPI:
+
+```bash
+poetry add meowmotion
+```
+
+## 🚀 Install from Source
+
+If you prefer to run the latest code or contribute:
 
 ```bash
 git clone https://github.com/faraz-m-awan/meowmotion.git
 cd meowmotion
-```
-
-## 📌 Prerequisites
-Python 3.11 is recommended for best compatibility.
-
-Poetry should be installed. If not, install it via:
-```bash
-pip install poetry
-```
-
-## 📥 Install Dependencies (Preferred Method)
-To install the dependencies using Poetry:
-```bash
 poetry install
 ```
 
-## ⚠️ Facing Issues with Other Python Versions?
+### ⚠️ Facing Issues with Other Python Versions?
 If you're not using Python 3.11 and encounter errors while installing dependencies (especially related to compiled packages or lock file constraints):
 1. **Delete the existing lock file:**
 ```bash
@@ -72,12 +74,6 @@ sudo apt install libxml2-dev libglpk-dev libigraph-dev
 ```
 
 ## ✅ You're Ready!
-Now you're all set to use MeowMotion! 🎉
-Check out the Usage Guide or explore the modules in the meowmotion/ directory.
-
-## 📦 PyPI Release Coming Soon
-MeowMotion will soon be available on PyPI. Once published, you'll be able to install it with:
-```bash
-pip install meowmotion
-```
-Stay tuned! 🐾
+You're all set to use MeowMotion! 🎉
+You can now import MeowMotion and dive into the [Quick Start Guide](https://urbanbigdatacentre.github.io/meowmotion/getting-started/quick-start/) or explore the modules in the meowmotion/ directory. 
+Happy analyzing! 🐾

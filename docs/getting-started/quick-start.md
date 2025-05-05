@@ -468,6 +468,10 @@ op_df, agg_op_df = modePredict(
     output_dir="path/to/output_dir"
 )
 ```
+> ⚠️ **Note:** The `model.pkl` and `label_encoder.joblib` files are not included in this repository.  
+> Please request them from the UBDC Data Service:  
+> 📧 `ubdc-dataservice@glasgow.ac.uk`
+
 
 ---
 
