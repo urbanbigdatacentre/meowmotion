@@ -105,6 +105,6 @@ If you use MeowMotion in your research, please cite:
   publisher    = {Zenodo},
   year         = {2024},
   doi          = {10.5281/zenodo.15346203},
-  url          = {https://doi.org/10.5281/zenodo.15346203}
+  url          = {https://doi.org/10.5281/zenodo.15311740}
 }
 ```
