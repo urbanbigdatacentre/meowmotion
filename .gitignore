@@ -16,3 +16,4 @@ test_package.py
 test_data_formatter.py
 test_modeling.py
 test_od.py
+dist
