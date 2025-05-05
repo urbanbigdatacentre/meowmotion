@@ -67,12 +67,21 @@ The documentation includes:
 
 ## 🛠 Installation
 
-MeowMotion is a Poetry-based project.
+### 📌 Prerequisites
+
+- **Python 3.11** is recommended for best compatibility.
+- **Poetry** (optional, for source installs):  
+  
+  ```bash
+  pip install poetry
+  ```
+### 🎉 Install via PyPI (Recommended)
+The easiest way to get started is to install directly from PyPI:
 
 ```bash
-git clone https://github.com/faraz-m-awan/meowmotion.git
-cd meowmotion
-poetry install
+poetry new project_name
+cd project_name
+poetry add meowmotion
 ```
 > 🔧 For compatibility tips and alternative setups (e.g., using uv), see the [Installation Guide](https://urbanbigdatacentre.github.io/meowmotion/getting-started/installation/).
 
