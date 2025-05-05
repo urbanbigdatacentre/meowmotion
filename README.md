@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/meowmotion_logo.png" alt="MeowMotion Logo" width="250"/><br>
+  <img src="https://drive.google.com/uc?export=view&id=1RPaTtY0j24DjBv70WTf2x1O6n_O4WJin" alt="MeowMotion Logo" width="250"/><br>
   <strong>Detecting Trips, OD Matrices, and Transport Modes from GPS Data</strong><br>
   <em>A Python package for processing geolocation data at scale</em><br>
   <em>Developer & Author: Dr. Faraz M. Awan</em>

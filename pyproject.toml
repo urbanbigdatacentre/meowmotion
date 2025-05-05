@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "meowmotion"
-version = "0.1.0"
+version = "0.1.1"
 description = "Mobile phone GPS data processor for trip generation and travel mode detection"
 authors = ["Faraz M. Awan <faraz.awan0406@gmail.com>"]
 readme = "README.md"
