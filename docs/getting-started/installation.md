@@ -20,6 +20,7 @@ The easiest way to get started is to install directly from PyPI:
 
 ```bash
 poetry new project_name
+cd project_name
 poetry add meowmotion
 ```
 
