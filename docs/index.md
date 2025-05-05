@@ -9,16 +9,16 @@
 
 <p align="center">
   <a href="https://www.python.org/downloads/release/python-311/">
-    <img src="https://img.shields.io/badge/python-3.11-blue.svg" alt="Python 3.11">
+    <img src="https://img.shields.io/badge/Python-3.11-blue.svg" alt="Python 3.11">
   </a>
   <a href="https://faraz-m-awan.github.io/meowmotion/">
-    <img src="https://img.shields.io/badge/docs-online-brightgreen.svg" alt="Documentation">
+    <img src="https://img.shields.io/badge/Docs-Online-brightgreen.svg" alt="Documentation">
   </a>
   <a href="https://github.com/faraz-m-awan/meowmotion/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT">
+    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
   </a>
   <a href="https://www.ubdc.ac.uk/">
-    <img src="https://img.shields.io/badge/developed%20by-UBDC-blueviolet" alt="Developed at UBDC">
+    <img src="https://img.shields.io/badge/Developed%20at-UBDC-blueviolet" alt="Developed at UBDC">
   </a>
   <a href="https://doi.org/10.5281/zenodo.15346203">
     <img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.15346203-blue.svg" alt="DOI">
