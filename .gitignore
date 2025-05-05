@@ -1,5 +1,6 @@
 __pycache__
 travel_mode_detection/__pycache__
+tests/__pycache__
 data/
 *.pyc
 *.env

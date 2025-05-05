@@ -74,7 +74,7 @@ def stopNodes(tdf: TrajDataFrame, time_th: int, radius: int) -> TrajDataFrame:
     )
 
 
-def processFlowGenration(
+def processFlowGeneration(
     stdf: pd.DataFrame,
     raw_df: pd.DataFrame,
     cpu_cores: int = max(1, int(cpu_count() / 2)),
@@ -116,9 +116,9 @@ def processFlowGenration(
         Each row represents a trip between one stop node and the next.
 
     Example:
-        >>> from meowmotion.meowmob import getStopNodes, processFlowGenration
+        >>> from meowmotion.meowmob import getStopNodes, processFlowGeneration
         >>> stop_nodes_df = getStopNodes(traj_df)
-        >>> flow_data = processFlowGenration(stop_nodes_df, raw_df, cpu_cores=4)
+        >>> flow_data = processFlowGeneration(stop_nodes_df, raw_df, cpu_cores=4)
         >>> print(flow_data.head())
     """
 
@@ -287,7 +287,7 @@ def getActivityStats(
     ), "Something is wrong..data Loss in Activity Stats Generation"
     print(f"{datetime.now()}: Activity Stats generated.")
     print(f"{datetime.now()}: Saving Activity Stats")
-    saveFile(path=output_dir, fname="activity_stats.csv", df=df)
+    saveFile(path=f'{output_dir}/activity_stats', fname="activity_stats.csv", df=df)
     return df
 
 
@@ -833,21 +833,21 @@ def generateOD(
     for typ in od_type:
         print(f"{datetime.now()}: Generating {type_meta[typ]} OD Matrix")
         if typ == "type1":
-            geo_df = geo_df[
+            geo_df_filtered = geo_df[
                 (geo_df["org_leaving_time"].dt.hour >= 7)
                 & (geo_df["org_leaving_time"].dt.hour <= 10)
                 & (geo_df["org_leaving_time"].dt.dayofweek < 5)
             ]
         elif typ == "type2":
-            geo_df = geo_df[
+            geo_df_filtered = geo_df[
                 (geo_df["org_leaving_time"].dt.hour >= 16)
                 & (geo_df["org_leaving_time"].dt.hour <= 19)
                 & (geo_df["org_leaving_time"].dt.dayofweek < 5)
             ]
         elif typ == "type3":
-            pass
+            geo_df_filtered = geo_df.copy()  # No filtering for type3
         elif typ == "type4":
-            geo_df = geo_df[
+            geo_df_filtered = geo_df[
                 ~(
                     (geo_df["org_leaving_time"].dt.hour >= 7)
                     & (geo_df["org_leaving_time"].dt.hour <= 10)
@@ -861,10 +861,12 @@ def generateOD(
                     & (geo_df["org_leaving_time"].dt.dayofweek < 5)
                 )
             ]
+        else:
+            raise ValueError(f"Invalid OD type: {typ}. Must be one of {type_meta}.")
 
         print(f"{datetime.now()}: Generating OD trip DF")
         od_trip_df = pd.DataFrame(
-            geo_df.groupby(["uid", "origin_geo_code", "destination_geo_code"]).apply(
+            geo_df_filtered.groupby(["uid", "origin_geo_code", "destination_geo_code"]).apply(
                 lambda x: len(x)
             ),
             columns=["trips"],
