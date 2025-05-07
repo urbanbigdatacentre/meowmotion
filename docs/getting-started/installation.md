@@ -46,33 +46,33 @@ uv pip install -r pyproject.toml
 ```
 This can help resolve compatibility issues with newer or older Python versions.
 
-## 🛠️ Troubleshooting Build Errors (e.g., igraph, C extensions)
-If you encounter installation issues related to igraph or other native extensions, make sure system build tools are installed:
+## 🛠️ Troubleshooting Build Errors (e.g., GDAL, igraph, C extensions)
+
+Some dependencies in the geospatial stack require native libraries. If you hit errors related to GDAL, PROJ, or other C extensions, follow the platform-specific steps below.
 
 ### 🪟 For Windows:
 
-1. Install cmake:
-   1. You can install it via [cmake.org](cmake.org) or
-   2. Using Chocolatey:
+1. **Install GDAL** (if not already installed by QGIS/OSGeo4W):
    ```bash
-   choco install cmake
+   choco install gdal -y
+   refreshenv
    ```
-2. Install Microsoft C++ Build Tools:
-   - Download and install from: [https://visualstudio.microsoft.com/visual-cpp-build-tools/](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
-   - During setup, make sure to include C++ build tools
+2. Install CMake and build tools:
+ - CMake (via [cmake.org](cmake.org) or Chocolatey):
+   ```bash
+         choco install cmake -y
+   ```
+ - Microsoft C++ Build Tools:
+   - Download from: [https://visualstudio.microsoft.com/visual-cpp-build-tools/](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+   - Include C++ build tools in setup
 
-This step is critical for packages like python-igraph that need native compilation.
+This ensures packages like python-igraph, fiona, or rasterio can compile or find pre-built wheels.
 
-## 🐧 For Linux:
+### 🐧 For Linux:
 Install system dependencies before installing Python packages:
 ```bash
-sudo apt update
-sudo apt install build-essential cmake
-```
-You may also need:
-
-```bash
-sudo apt install libxml2-dev libglpk-dev libigraph-dev
+   sudo apt update
+   sudo apt install build-essential cmake gdal-bin libgdal-dev libxml2-dev libglpk-dev libigraph-dev
 ```
 
 ## ✅ You're Ready!
