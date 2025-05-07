@@ -60,7 +60,7 @@ Some dependencies in the geospatial stack require native libraries. If you hit e
 2. Install CMake and build tools:
  - CMake (via [cmake.org](cmake.org) or Chocolatey):
    ```bash
-         choco install cmake -y
+   choco install cmake -y
    ```
  - Microsoft C++ Build Tools:
    - Download from: [https://visualstudio.microsoft.com/visual-cpp-build-tools/](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
