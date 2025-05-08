@@ -287,7 +287,7 @@ def getActivityStats(
     ), "Something is wrong..data Loss in Activity Stats Generation"
     print(f"{datetime.now()}: Activity Stats generated.")
     print(f"{datetime.now()}: Saving Activity Stats")
-    saveFile(path=f'{output_dir}/activity_stats', fname="activity_stats.csv", df=df)
+    saveFile(path=f"{output_dir}/activity_stats", fname="activity_stats.csv", df=df)
     return df
 
 
@@ -489,9 +489,6 @@ def generateOD(
     geo_df = geo_df[geo_df["stay_duration"] <= 3600]
     nusers = geo_df["uid"].nunique()
     print(f"{datetime.now()}: Total Unique Users: {nusers}")
-
-    print(geo_df[~geo_df["origin_geo_code"].isna()].head())
-
     geo_df["origin_geo_code"] = geo_df["origin_geo_code"].fillna("Others")
     geo_df["destination_geo_code"] = geo_df["destination_geo_code"].fillna("Others")
     geo_df = geo_df[geo_df["origin_geo_code"] != "Others"]
@@ -515,7 +512,11 @@ def generateOD(
     )
 
     print(f"{datetime.now()}: Saving disclosure analysis file")
-    saveFile(path=output_dir, fname="disclosure_analysis_.csv", df=analysis_df)
+    saveFile(
+        path=f"{output_dir}/disclosure_analysis",
+        fname="disclosure_analysis_.csv",
+        df=analysis_df,
+    )
     print(f"{datetime.now()}: Saved disclosure analysis file")
 
     ############################################################
@@ -866,9 +867,9 @@ def generateOD(
 
         print(f"{datetime.now()}: Generating OD trip DF")
         od_trip_df = pd.DataFrame(
-            geo_df_filtered.groupby(["uid", "origin_geo_code", "destination_geo_code"]).apply(
-                lambda x: len(x)
-            ),
+            geo_df_filtered.groupby(
+                ["uid", "origin_geo_code", "destination_geo_code"]
+            ).apply(lambda x: len(x)),
             columns=["trips"],
         ).reset_index()  # Get number of Trips between orgins and destination for individual users
         print(f"{datetime.now()}: Adding weights to OD trips")
@@ -931,17 +932,20 @@ def generateOD(
             agg_od_df["act_cncl_weighted_trips"]
             / agg_od_df["act_cncl_weighted_trips"].sum()
         ) * 100
+
+        agg_od_df = agg_od_df.rename(
+            columns={"act_cncl_weighted_trips": "trips_weighted"}
+        )
         agg_od_df = agg_od_df[
             [
                 "origin_geo_code",
                 "destination_geo_code",
                 "trips",
-                "activity_weighted_trips",
-                "council_weighted_trips",
-                "act_cncl_weighted_trips",
+                "trips_weighted",
                 "percentage",
             ]
         ]
+
         saveFile(path=f"{output_dir}/od_matrix", fname=f"{typ}_od.csv", df=agg_od_df)
         return_ods.append(agg_od_df)
 
