@@ -2,7 +2,6 @@
   <img src="https://drive.google.com/uc?export=view&id=1RPaTtY0j24DjBv70WTf2x1O6n_O4WJin" alt="MeowMotion Logo" width="250"/><br>
   <strong>Detecting Trips, OD Matrices, and Transport Modes from GPS Data</strong><br>
   <em>A Python package for processing geolocation data at scale</em><br>
-  <em>Developer & Author: Dr. Faraz M. Awan</em>
 </p>
 
 <p align="center">
@@ -70,8 +69,8 @@ The documentation includes:
 ### 📌 Prerequisites
 
 - **Python 3.11** is recommended for best compatibility.
-- **Poetry** (optional, for source installs):  
-  
+- **Poetry** (optional, for source installs):
+
   ```bash
   pip install poetry
   ```
