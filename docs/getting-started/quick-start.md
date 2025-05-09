@@ -191,9 +191,7 @@ The output file contains Origin-Destination (OD) pairs with associated trip coun
 | `origin_geo_code`       | Geographic code of the origin area (e.g., data zone, LSOA, MSOA)            |
 | `destination_geo_code`  | Geographic code of the destination area                                     |
 | `trips`                 | Number of detected trips in the raw GPS data                                |
-| `activity_weighted`     | Trips scaled to population using activity-based user weighting              |
-| `council_weighted_trips`| Trips scaled using council-level and IMD adult population weights                   |
-| `act_cncl_weighted_trips`| Trips scaled using both activity-based and council-level weights           |
+| `trips_weighted`| Trips scaled using both activity-based and council-level weights           |
 | `percentage`            | Share of trips for this OD pair relative to all trips in the region         |
 
 > 📌 Multiple OD matrix files are generated (AM, PM, all-day, non-peak), each following this schema.
@@ -468,8 +466,8 @@ op_df, agg_op_df = modePredict(
     output_dir="path/to/output_dir"
 )
 ```
-> ⚠️ **Note:** The `model.pkl` and `label_encoder.joblib` files are not included in this repository.  
-> Please request them from the UBDC Data Service:  
+> ⚠️ **Note:** The `model.pkl` and `label_encoder.joblib` files are not included in this repository.
+> Please request them from the UBDC Data Service:
 > 📧 `ubdc-dataservice@glasgow.ac.uk`
 
 
