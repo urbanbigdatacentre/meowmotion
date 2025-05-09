@@ -104,7 +104,7 @@ If you use MeowMotion in your research, please cite:
   affiliation  = {Urban Big Data Centre, University of Glasgow},
   publisher    = {Zenodo},
   year         = {2024},
-  doi          = {10.5281/zenodo.15346203},
+  doi          = {10.5281/zenodo.15311740},
   url          = {https://doi.org/10.5281/zenodo.15311740}
 }
 ```
