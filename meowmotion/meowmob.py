@@ -434,8 +434,9 @@ def generateOD(
         >>> print(od_matrices[0].head())  # OD matrix for "type3"
     """
 
-    print(shape.crs)
+    print(f"{datetime.now()}: Current CRS {shape.crs}")
     shape = shape.to_crs("EPSG:4326")
+    print(f"{datetime.now()}: CRS after Conversion: {shape.crs}")
     print(f"{datetime.now()}: Indexing Shape File")
     shape.sindex
 
@@ -567,11 +568,11 @@ def generateOD(
     #############################################################
 
     print(f"{datetime.now()}: Calculating Total Trips/User")
-    geo_df["month"] = geo_df["org_leaving_time"].dt.month
+    # geo_df["month"] = geo_df["org_leaving_time"].dt.month
     geo_df = geo_df.assign(
         total_trips=lambda df: df.groupby("uid")["trip_id"].transform(lambda x: len(x))
     )
-    geo_df = geo_df.drop(columns=["month"])
+    # geo_df = geo_df.drop(columns=["month"])
     print(f"{datetime.now()}: Trips/User Calculated")
 
     #############################################################
@@ -660,7 +661,7 @@ def generateOD(
                 ]
             ],
         )
-        print(f"{datetime.now()}:  Non-Aggregated OD Flow Saved")
+        print(f"{datetime.now()}: Non-Aggregated OD Flow Saved")
 
         #############################################################
         #                                                           #
@@ -786,11 +787,10 @@ def generateOD(
     geo_df = geo_df[
         (geo_df["total_active_days"] >= 7) & (geo_df["tpad"] >= 0.2)
     ]  # Filtering based on number of active days and trips/active day
-    print(geo_df.head())
 
     print(f"{datetime.now()}: Total Trips: {len(geo_df)}")
     print(f'{datetime.now()}: Total Users: {len(geo_df["uid"].unique())}')
-    print(f'{datetime.now()}: TPAD Stats:\n {geo_df["tpad"].describe()}')
+    print(f'{datetime.now()}: TPAD Stats:\n{geo_df["tpad"].describe()}')
     od_trip_df = pd.DataFrame(
         geo_df.groupby(["uid", "origin_geo_code", "destination_geo_code"]).apply(
             lambda x: len(x)
@@ -989,8 +989,6 @@ def getWeights(
             )
         >>> print(weighted_df[['uid', 'activity_weight', 'imd_weight']].head())
     """
-
-    print(f"{datetime.now()}: Calculating Weights")
     od_trip_df = pd.DataFrame(
         geo_df.groupby(["uid", origin_col, destination_col]).apply(lambda x: len(x)),
         columns=["trips"],
