@@ -1,0 +1,2576 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://urbanbigdatacentre.github.io/meowmotion/getting-started/quick-start/">
+      
+      
+        <link rel="prev" href="../installation/">
+      
+      
+        <link rel="next" href="../../examples/">
+      
+      
+      <link rel="icon" href="../../assets/icon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+    
+    
+      
+        <title>Quick Start - MeowMotion</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2afb09e1.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="orange" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#quick-start" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MeowMotion" class="md-header__button md-logo" aria-label="MeowMotion" data-md-component="logo">
+      
+  <img src="../../assets/meowmotion_logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MeowMotion
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Quick Start
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="orange" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="lime"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/urbanbigdatacentre/meowmotion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MeowMotion
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MeowMotion" class="md-nav__button md-logo" aria-label="MeowMotion" data-md-component="logo">
+      
+  <img src="../../assets/meowmotion_logo.png" alt="logo">
+
+    </a>
+    MeowMotion
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/urbanbigdatacentre/meowmotion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MeowMotion
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-prepare-your-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      📂 Step 1: Prepare Your Data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-filter-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧹 Step 2: Filter the Data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-detect-stop-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛑 Step 3: Detect Stop Nodes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛑 Step 3: Detect Stop Nodes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-stop_nodescsv-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Output: stop_nodes.csv Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-generate-trips-from-stop-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧭 Step 4: Generate Trips from Stop Nodes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧭 Step 4: Generate Trips from Stop Nodes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-trip_datacsv-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Output: trip_data.csv Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-calculate-activity-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Step 5: Calculate Activity Statistics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Step 5: Calculate Activity Statistics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-activity_statscsv-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Output: activity_stats.csv Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-generate-od-matrices" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗺️ Step 6: Generate OD Matrices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🗺️ Step 6: Generate OD Matrices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-od_matrix_type_xcsv-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Output: od_matrix_type_X.csv Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-outputs-from-generateod" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Additional Outputs from generateOD()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Additional Outputs from generateOD()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-trip_pointscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. trip_points.csv
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-non_agg_stay_pointscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. non_agg_stay_points.csv
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-na_flowscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. na_flows.csv
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-agg_stay_pointscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. agg_stay_points.csv
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes-on-required-input-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      📌 Notes on Required Input Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📌 Notes on Required Input Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-shapefile" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧭 1. Shapefile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-home-location-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏠 2. Home Location File
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏠 2. Home Location File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required-columns-in-the-home-location-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗂️ Required Columns in the Home Location File
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-home-location-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Sample Home Location Data
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-adult-population-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧮 3. Adult Population File
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧮 3. Adult Population File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required-columns-in-the-adult-population-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗂️ Required Columns in the Adult Population File
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-adult-population-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Sample Adult Population Data
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start-travel-mode-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚦 Quick Start: Travel Mode Detection
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚦 Quick Start: Travel Mode Detection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-prepare-the-trip-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧱 Step 1: Prepare the Trip Data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-feature-engineering" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧠 Step 2: Feature Engineering
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-generate-trip-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Step 3: Generate Trip Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-predict-travel-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      🤖 Step 4: Predict Travel Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-travel-mode-detection-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Output: Travel Mode Detection Results
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Output: Travel Mode Detection Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aggregated-output-travel-mode-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗺️ Aggregated Output — Travel Mode Matrix
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-aggregated-output-detected-travel-mode-for-each-trip" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧭 Non-Aggregated Output — Detected Travel Mode for Each Trip
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes-on-required-input-files_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      📌 Notes on Required Input Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📌 Notes on Required Input Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bus-stops-shapefile" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚌 Bus Stops Shapefile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metro-stations-shapefile" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚇 Metro Stations Shapefile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#train-stations-shapefile" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚆 Train Stations Shapefile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#green-spaces-shapefile" class="md-nav__link">
+    <span class="md-ellipsis">
+      🌳 Green Spaces Shapefile
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#youre-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ You're Done!
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Usage Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/data_formatter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Formatter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/meowmob/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Meowmob
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/model_tmd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Model TMD
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/process_data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Process Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-prepare-your-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      📂 Step 1: Prepare Your Data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-filter-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧹 Step 2: Filter the Data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-detect-stop-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛑 Step 3: Detect Stop Nodes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛑 Step 3: Detect Stop Nodes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-stop_nodescsv-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Output: stop_nodes.csv Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-generate-trips-from-stop-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧭 Step 4: Generate Trips from Stop Nodes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧭 Step 4: Generate Trips from Stop Nodes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-trip_datacsv-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Output: trip_data.csv Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-calculate-activity-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Step 5: Calculate Activity Statistics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Step 5: Calculate Activity Statistics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-activity_statscsv-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Output: activity_stats.csv Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-generate-od-matrices" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗺️ Step 6: Generate OD Matrices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🗺️ Step 6: Generate OD Matrices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-od_matrix_type_xcsv-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Output: od_matrix_type_X.csv Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-outputs-from-generateod" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Additional Outputs from generateOD()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Additional Outputs from generateOD()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-trip_pointscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. trip_points.csv
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-non_agg_stay_pointscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. non_agg_stay_points.csv
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-na_flowscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. na_flows.csv
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-agg_stay_pointscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. agg_stay_points.csv
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes-on-required-input-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      📌 Notes on Required Input Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📌 Notes on Required Input Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-shapefile" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧭 1. Shapefile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-home-location-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏠 2. Home Location File
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏠 2. Home Location File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required-columns-in-the-home-location-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗂️ Required Columns in the Home Location File
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-home-location-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Sample Home Location Data
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-adult-population-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧮 3. Adult Population File
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧮 3. Adult Population File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required-columns-in-the-adult-population-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗂️ Required Columns in the Adult Population File
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-adult-population-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Sample Adult Population Data
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start-travel-mode-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚦 Quick Start: Travel Mode Detection
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚦 Quick Start: Travel Mode Detection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-prepare-the-trip-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧱 Step 1: Prepare the Trip Data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-feature-engineering" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧠 Step 2: Feature Engineering
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-generate-trip-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Step 3: Generate Trip Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-predict-travel-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      🤖 Step 4: Predict Travel Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-travel-mode-detection-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Output: Travel Mode Detection Results
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Output: Travel Mode Detection Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aggregated-output-travel-mode-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      🗺️ Aggregated Output — Travel Mode Matrix
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-aggregated-output-detected-travel-mode-for-each-trip" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧭 Non-Aggregated Output — Detected Travel Mode for Each Trip
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes-on-required-input-files_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      📌 Notes on Required Input Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📌 Notes on Required Input Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bus-stops-shapefile" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚌 Bus Stops Shapefile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metro-stations-shapefile" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚇 Metro Stations Shapefile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#train-stations-shapefile" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚆 Train Stations Shapefile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#green-spaces-shapefile" class="md-nav__link">
+    <span class="md-ellipsis">
+      🌳 Green Spaces Shapefile
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#youre-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ You're Done!
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="quick-start">🚀 Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h1>
+<p>Welcome to <strong>MeowMotion</strong>! This quick start guide walks you through detecting trips and predicting transport modes using sample GPS data, all in just a few lines of code.</p>
+<blockquote>
+<p>⚠️ Make sure you've followed the <a href="https://faraz-m-awan.github.io/meowmotion/getting-started/installation/">Installation Guide</a> before starting.</p>
+</blockquote>
+<hr />
+<h2 id="step-1-prepare-your-data">📂 Step 1: Prepare Your Data<a class="headerlink" href="#step-1-prepare-your-data" title="Permanent link">&para;</a></h2>
+<p>Ensure you have a GPS data file (e.g., <code>sample_gps_data.csv</code>) with the following minimum columns:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>uid</td>
+<td>Unique identifier for each user</td>
+</tr>
+<tr>
+<td>datetime</td>
+<td>UTC timestamp of the GPS point</td>
+</tr>
+<tr>
+<td>lat</td>
+<td>Latitude</td>
+</tr>
+<tr>
+<td>lng</td>
+<td>Longitude</td>
+</tr>
+<tr>
+<td>impression_acc</td>
+<td>GPS point accuracy in meters</td>
+</tr>
+</tbody>
+</table>
+<p>📌 <strong>Example snippet (Microsoft Research Asia's <a href="https://www.microsoft.com/en-us/research/publication/geolife-gps-trajectory-dataset-user-guide/">Geolife GPS Trajectory Dataset</a>):</strong></p>
+<div class="highlight"><pre><span></span><code>uid,datetime,lat,lng,impression_acc
+000,2008-10-23 02:53:04,39.984702,116.318417,99
+000,2008-10-23 02:53:10,39.984683,116.31845,5
+000,2008-10-23 02:53:15,39.984686,116.318417,99
+000,2008-10-23 02:53:20,39.984688,116.318385,99
+000,2008-10-23 02:53:25,39.984655,116.318263,99
+000,2008-10-23 02:53:30,39.984611,116.318026,5
+</code></pre></div>
+<h2 id="step-2-filter-the-data">🧹 Step 2: Filter the Data<a class="headerlink" href="#step-2-filter-the-data" title="Permanent link">&para;</a></h2>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">meowmotion.process_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">getFilteredData</span>
+
+<span class="n">raw_df</span> <span class="o">=</span> <span class="n">readData</span><span class="p">()</span> <span class="c1"># Reading raw GPS data</span>
+<span class="n">impr_acc</span> <span class="o">=</span> <span class="mi">100</span> <span class="c1"># Setting impression accuracy (GPS accuracy) to at least 100m</span>
+<span class="n">cpu_cores</span> <span class="o">=</span> <span class="mi">12</span> <span class="c1"># Using 12 cores of processor</span>
+
+<span class="c1"># Filter based on impression accuracy and speed</span>
+<span class="n">raw_df_filtered</span> <span class="o">=</span> <span class="n">getFilteredData</span><span class="p">(</span>
+    <span class="n">raw_df</span><span class="p">,</span>
+    <span class="n">impr_acc</span><span class="o">=</span><span class="n">impr_acc</span><span class="p">,</span>
+    <span class="n">cpu_cores</span><span class="o">=</span><span class="n">cpu_cores</span>
+<span class="p">)</span>
+</code></pre></div>
+This step removes noisy and low-quality points to prepare the data for stop detection.</p>
+<h2 id="step-3-detect-stop-nodes">🛑 Step 3: Detect Stop Nodes<a class="headerlink" href="#step-3-detect-stop-nodes" title="Permanent link">&para;</a></h2>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">meowmotion.meowmob</span><span class="w"> </span><span class="kn">import</span> <span class="n">getStopNodes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">meowmotion.process_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">saveFile</span>
+
+<span class="n">output_dir</span> <span class="o">=</span> <span class="s1">&#39;path/to/output/directory&#39;</span>
+<span class="c1"># Detect significant stop locations</span>
+<span class="n">stdf</span> <span class="o">=</span> <span class="n">getStopNodes</span><span class="p">(</span>
+    <span class="n">tdf</span><span class="o">=</span><span class="n">raw_df_filtered</span><span class="p">,</span>
+    <span class="n">time_th</span><span class="o">=</span><span class="n">time_th</span><span class="p">,</span>
+    <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span>
+    <span class="n">cpu_cores</span><span class="o">=</span><span class="n">cpu_cores</span>
+<span class="p">)</span>
+
+<span class="c1"># Save to disk</span>
+<span class="n">saveFile</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;stop_nodes.csv&#39;</span><span class="p">,</span> <span class="n">stdf</span><span class="p">)</span>
+</code></pre></div>
+This step identifies user stop locations based on temporal and spatial clustering of GPS points.</p>
+<h4 id="output-stop_nodescsv-schema">📋 Output: <code>stop_nodes.csv</code> Schema<a class="headerlink" href="#output-stop_nodescsv-schema" title="Permanent link">&para;</a></h4>
+<p>The output file contains one row per detected stay (stop) location. Each row includes:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uid</code></td>
+<td>Unique identifier for the user</td>
+</tr>
+<tr>
+<td><code>org_lng</code></td>
+<td>Longitude of the centroid of the detected stay location</td>
+</tr>
+<tr>
+<td><code>org_lat</code></td>
+<td>Latitude of the centroid of the detected stay location</td>
+</tr>
+<tr>
+<td><code>datetime</code></td>
+<td>Arrival time, when the user first arrived at the stay location</td>
+</tr>
+<tr>
+<td><code>leaving_datetime</code></td>
+<td>Departure time, when the user left the stay location</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>✅ These stop locations are later used to generate trip flows between consecutive stops.</p>
+</blockquote>
+<h2 id="step-4-generate-trips-from-stop-nodes">🧭 Step 4: Generate Trips from Stop Nodes<a class="headerlink" href="#step-4-generate-trips-from-stop-nodes" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">meowmotion.meowmob</span><span class="w"> </span><span class="kn">import</span> <span class="n">processFlowGenration</span>
+
+<span class="c1"># Create trips between stop nodes</span>
+<span class="n">trip_df</span> <span class="o">=</span> <span class="n">processFlowGenration</span><span class="p">(</span>
+    <span class="n">stdf</span><span class="o">=</span><span class="n">stdf</span><span class="p">,</span>
+    <span class="n">raw_df</span><span class="o">=</span><span class="n">raw_df_filtered</span><span class="p">,</span>
+    <span class="n">cpu_cores</span><span class="o">=</span><span class="n">cpu_cores</span>
+<span class="p">)</span>
+
+<span class="c1"># Save trip data</span>
+<span class="n">saveFile</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;trip_data.csv&#39;</span><span class="p">,</span> <span class="n">trip_df</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="output-trip_datacsv-schema">📋 Output: <code>trip_data.csv</code> Schema<a class="headerlink" href="#output-trip_datacsv-schema" title="Permanent link">&para;</a></h4>
+<p>The output file contains one row per detected trip between two stay locations. Each row includes:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uid</code></td>
+<td>Unique identifier for the user</td>
+</tr>
+<tr>
+<td><code>org_lat</code></td>
+<td>Latitude of the origin stay location centroid</td>
+</tr>
+<tr>
+<td><code>org_lng</code></td>
+<td>Longitude of the origin stay location centroid</td>
+</tr>
+<tr>
+<td><code>org_arival_time</code></td>
+<td>Time when the user arrived at the origin stay location</td>
+</tr>
+<tr>
+<td><code>org_leaving_time</code></td>
+<td>Time when the user left the origin stay location</td>
+</tr>
+<tr>
+<td><code>dest_lat</code></td>
+<td>Latitude of the destination stay location centroid</td>
+</tr>
+<tr>
+<td><code>dest_lng</code></td>
+<td>Longitude of the destination stay location centroid</td>
+</tr>
+<tr>
+<td><code>dest_arival_time</code></td>
+<td>Time when the user arrived at the destination stay location</td>
+</tr>
+<tr>
+<td><code>stay_points</code></td>
+<td>All GPS points within the origin stay location cluster</td>
+</tr>
+<tr>
+<td><code>trip_points</code></td>
+<td>Trajectory points generated during the trip between two stay locations</td>
+</tr>
+<tr>
+<td><code>trip_time</code></td>
+<td>Total duration of the trip</td>
+</tr>
+<tr>
+<td><code>stay_duration</code></td>
+<td>Duration the user stayed at the origin location (detected using scikit-mobility)</td>
+</tr>
+<tr>
+<td><code>observed_stay_duration</code></td>
+<td>Duration inferred based on GPS points within the stay location</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>🧭 These trips are the basis for later mode classification and OD matrix generation.</p>
+</blockquote>
+<h2 id="step-5-calculate-activity-statistics">📊 Step 5: Calculate Activity Statistics<a class="headerlink" href="#step-5-calculate-activity-statistics" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">meowmotion.meowmob</span><span class="w"> </span><span class="kn">import</span> <span class="n">getActivityStats</span>
+
+<span class="c1"># Compute user activity summary</span>
+<span class="n">activity_df</span> <span class="o">=</span> <span class="n">getActivityStats</span><span class="p">(</span>
+    <span class="n">df</span><span class="o">=</span><span class="n">raw_df</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
+    <span class="n">cpu_cores</span><span class="o">=</span><span class="n">cpu_cores</span>
+<span class="p">)</span>
+
+<span class="c1"># Save to disk</span>
+<span class="n">saveFile</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;activity_stats.csv&#39;</span><span class="p">,</span> <span class="n">activity_df</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="output-activity_statscsv-schema">📋 Output: <code>activity_stats.csv</code> Schema<a class="headerlink" href="#output-activity_statscsv-schema" title="Permanent link">&para;</a></h4>
+<p>The output file contains activity statistics per user, aggregated by month. Each row includes:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uid</code></td>
+<td>Unique identifier for the user</td>
+</tr>
+<tr>
+<td><code>month</code></td>
+<td>Month in <code>YYYY-MM</code> format</td>
+</tr>
+<tr>
+<td><code>total_active_days</code></td>
+<td>Total number of days the user was observed active in that month</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>📊 This information is later used to weight users' trip contributions when generating OD matrices.</p>
+</blockquote>
+<h2 id="step-6-generate-od-matrices">🗺️ Step 6: Generate OD Matrices<a class="headerlink" href="#step-6-generate-od-matrices" title="Permanent link">&para;</a></h2>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">meowmotion.meowmob</span><span class="w"> </span><span class="kn">import</span> <span class="n">generateOD</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gpd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="c1"># Load supporting data</span>
+<span class="n">city_shape</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">city_shape_file_path</span><span class="p">)</span> <span class="c1"># Shapefile of the city</span>
+<span class="n">hldf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">hl_file_path</span><span class="p">)</span> <span class="c1"># Detected home location data of the users in the data</span>
+<span class="n">adult_population_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">adult_population_file_path</span><span class="p">)</span> <span class="c1"># Adult population of the city W.R.T. to IMD</span>
+
+<span class="c1"># Generate 4 types of OD matrices with scaling</span>
+<span class="n">generateOD</span><span class="p">(</span>
+    <span class="n">trip_df</span><span class="o">=</span><span class="n">trip_df</span><span class="p">,</span>
+    <span class="n">shape</span><span class="o">=</span><span class="n">city_shape</span><span class="p">,</span>
+    <span class="n">active_day_df</span><span class="o">=</span><span class="n">activity_df</span><span class="p">,</span>
+    <span class="n">hldf</span><span class="o">=</span><span class="n">hldf</span><span class="p">,</span>
+    <span class="n">adult_population</span><span class="o">=</span><span class="n">adult_population_df</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
+    <span class="n">cpu_cores</span><span class="o">=</span><span class="n">cpu_cores</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+This produces four types of OD matrices using demographic and activity-based weights:</p>
+<ul>
+<li><strong>Type 1:</strong> AM peak (7–10am)</li>
+<li><strong>Type 2:</strong> PM peak (4–7pm)</li>
+<li><strong>Type 3:</strong> All-day</li>
+<li><strong>Type 4:</strong> Non-peak (Type 3 − Type 1 &amp; 2)</li>
+</ul>
+<h4 id="output-od_matrix_type_xcsv-schema">📋 Output: <code>od_matrix_type_X.csv</code> Schema<a class="headerlink" href="#output-od_matrix_type_xcsv-schema" title="Permanent link">&para;</a></h4>
+<p>The output file contains Origin-Destination (OD) pairs with associated trip counts and scaled values. Each row represents a unique OD pair for a given time window (e.g., AM peak, PM peak, etc.).</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>origin_geo_code</code></td>
+<td>Geographic code of the origin area (e.g., data zone, LSOA, MSOA)</td>
+</tr>
+<tr>
+<td><code>destination_geo_code</code></td>
+<td>Geographic code of the destination area</td>
+</tr>
+<tr>
+<td><code>trips</code></td>
+<td>Number of detected trips in the raw GPS data</td>
+</tr>
+<tr>
+<td><code>trips_weighted</code></td>
+<td>Trips scaled using both activity-based and council-level weights</td>
+</tr>
+<tr>
+<td><code>percentage</code></td>
+<td>Share of trips for this OD pair relative to all trips in the region</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>📌 Multiple OD matrix files are generated (AM, PM, all-day, non-peak), each following this schema.</p>
+</blockquote>
+<h4 id="additional-outputs-from-generateod">📦 Additional Outputs from <code>generateOD()</code><a class="headerlink" href="#additional-outputs-from-generateod" title="Permanent link">&para;</a></h4>
+<p>In addition to OD matrices, the <code>generateOD()</code> function produces the following five datasets by default:</p>
+<hr />
+<h5 id="1-trip_pointscsv">1. <code>trip_points.csv</code><a class="headerlink" href="#1-trip_pointscsv" title="Permanent link">&para;</a></h5>
+<p>This file contains detailed trajectory points for each detected trip and includes:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uid</code></td>
+<td>Unique identifier for the user</td>
+</tr>
+<tr>
+<td><code>imd_quintile</code></td>
+<td>IMD quintile of the user's home location</td>
+</tr>
+<tr>
+<td><code>trip_id</code></td>
+<td>Unique identifier for the trip</td>
+</tr>
+<tr>
+<td><code>trip_points</code></td>
+<td>List of GPS points forming the trajectory between origin and destination</td>
+</tr>
+<tr>
+<td><code>total_active_days</code></td>
+<td>Number of days the user was active in the dataset</td>
+</tr>
+<tr>
+<td><code>travel_mode</code></td>
+<td>Placeholder column (mode not yet detected at this stage)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="2-non_agg_stay_pointscsv">2. <code>non_agg_stay_points.csv</code><a class="headerlink" href="#2-non_agg_stay_pointscsv" title="Permanent link">&para;</a></h5>
+<p>This file lists all GPS points within the detected stay location clusters for each user:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uid</code></td>
+<td>Unique identifier for the user</td>
+</tr>
+<tr>
+<td><code>imd_quintile</code></td>
+<td>IMD quintile of the user's home location</td>
+</tr>
+<tr>
+<td><code>stay_points</code></td>
+<td>List of GPS points within the stay location cluster</td>
+</tr>
+<tr>
+<td><code>stop_node_arival_time</code></td>
+<td>Time when the user arrived at the stay location</td>
+</tr>
+<tr>
+<td><code>stop_node_leaving_time</code></td>
+<td>Time when the user left the stay location</td>
+</tr>
+<tr>
+<td><code>stay_duration</code></td>
+<td>Duration of stay at the location</td>
+</tr>
+<tr>
+<td><code>centroid_lat</code></td>
+<td>Latitude of the stay location centroid</td>
+</tr>
+<tr>
+<td><code>centroid_lng</code></td>
+<td>Longitude of the stay location centroid</td>
+</tr>
+<tr>
+<td><code>total_active_days</code></td>
+<td>Number of active days for the user</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="3-na_flowscsv">3. <code>na_flows.csv</code><a class="headerlink" href="#3-na_flowscsv" title="Permanent link">&para;</a></h5>
+<p>Unlike the trip flows from Step 4, this dataset includes additional user-level attributes:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uid</code></td>
+<td>Unique identifier for the user</td>
+</tr>
+<tr>
+<td><code>imd_quintile</code></td>
+<td>IMD quintile of the user's home location</td>
+</tr>
+<tr>
+<td><code>trip_id</code></td>
+<td>Unique trip ID</td>
+</tr>
+<tr>
+<td><code>org_lat</code></td>
+<td>Latitude of the origin stay location</td>
+</tr>
+<tr>
+<td><code>org_lng</code></td>
+<td>Longitude of the origin stay location</td>
+</tr>
+<tr>
+<td><code>org_arival_time</code></td>
+<td>Time of arrival at the origin stay location</td>
+</tr>
+<tr>
+<td><code>org_leaving_time</code></td>
+<td>Time of departure from the origin stay location</td>
+</tr>
+<tr>
+<td><code>dest_lat</code></td>
+<td>Latitude of the destination stay location</td>
+</tr>
+<tr>
+<td><code>dest_lng</code></td>
+<td>Longitude of the destination stay location</td>
+</tr>
+<tr>
+<td><code>dest_arival_time</code></td>
+<td>Time of arrival at the destination stay location</td>
+</tr>
+<tr>
+<td><code>total_trips</code></td>
+<td>Total number of trips detected for the user</td>
+</tr>
+<tr>
+<td><code>total_active_days</code></td>
+<td>Number of active days for the user</td>
+</tr>
+<tr>
+<td><code>tpad</code></td>
+<td>Trips per active day (<code>total_trips / total_active_days</code>)</td>
+</tr>
+<tr>
+<td><code>travel_mode</code></td>
+<td>Placeholder column (mode not yet detected)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h5 id="4-agg_stay_pointscsv">4. <code>agg_stay_points.csv</code><a class="headerlink" href="#4-agg_stay_pointscsv" title="Permanent link">&para;</a></h5>
+<p>This abstracted version of stay point data assigns each detected stop to a geographic zone (<code>geo_code</code>), making it less sensitive:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>imd_quintile</code></td>
+<td>IMD quintile of the user's home location</td>
+</tr>
+<tr>
+<td><code>stop_node_geo_code</code></td>
+<td>Geographic zone code where the stop was detected</td>
+</tr>
+<tr>
+<td><code>stop_node_arival_time</code></td>
+<td>Time of arrival at the stay location</td>
+</tr>
+<tr>
+<td><code>stop_node_leaving_time</code></td>
+<td>Time of departure from the stay location</td>
+</tr>
+<tr>
+<td><code>stay_duration</code></td>
+<td>Duration of stay at the location</td>
+</tr>
+</tbody>
+</table>
+<h2 id="notes-on-required-input-files">📌 Notes on Required Input Files<a class="headerlink" href="#notes-on-required-input-files" title="Permanent link">&para;</a></h2>
+<h3 id="1-shapefile">🧭 1. Shapefile<a class="headerlink" href="#1-shapefile" title="Permanent link">&para;</a></h3>
+<p>The shapefile must include the following mandatory columns:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>geo_code</td>
+<td>Unique identifier for each geographic area (e.g., LSOA, MSOA, data zone)</td>
+</tr>
+<tr>
+<td>name</td>
+<td>Human-readable name for the geographic area</td>
+</tr>
+<tr>
+<td>geometry</td>
+<td>Polygon geometry representing the spatial boundary</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>📌 The coordinate reference system (CRS) <strong>must be EPSG:4326 (WGS84)</strong>.</p>
+</blockquote>
+<p>This shapefile defines the spatial resolution for OD matrix generation. You can choose to calculate OD matrices at different <a href="https://www.ons.gov.uk/methodology/geography/ukgeographies/statisticalgeographies">geographic levels</a>, including:</p>
+<ul>
+<li><strong>Local level:</strong> data zones, LSOA</li>
+<li><strong>Intermediate level:</strong> MSOA, intermediate zones</li>
+<li><strong>Regional level:</strong> councils, municipalities</li>
+</ul>
+<p>🗂️ <strong>Sample Shapefile Preview</strong></p>
+<table>
+<thead>
+<tr>
+<th>geo_code</th>
+<th>name</th>
+<th>geometry (EPSG:4326)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S02001902</td>
+<td>Garrowhill West</td>
+<td>POLYGON ((-4.11936 55.85619, ...))</td>
+</tr>
+<tr>
+<td>S02001903</td>
+<td>Garrowhill East and Swinton</td>
+<td>POLYGON ((-4.09793 55.85989, ...))</td>
+</tr>
+<tr>
+<td>S02001908</td>
+<td>Barlanark</td>
+<td>POLYGON ((-4.13333 55.86491, ...))</td>
+</tr>
+<tr>
+<td>S02001907</td>
+<td>North Barlanark and Easterhouse South</td>
+<td>POLYGON ((-4.11959 55.86862, ...))</td>
+</tr>
+<tr>
+<td>S02001927</td>
+<td>Dennistoun North</td>
+<td>POLYGON ((-4.21574 55.86692, ...))</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>✅ Ensure geometries are valid and CRS is correctly set to <strong>EPSG:4326 (WGS84)</strong> for spatial operations to succeed.</p>
+</blockquote>
+<h3 id="2-home-location-file">🏠 2. Home Location File<a class="headerlink" href="#2-home-location-file" title="Permanent link">&para;</a></h3>
+<p>The <strong>Home Location file</strong> contains information about the detected home locations of users in the GPS dataset. These locations are identified using a <a href="https://www.sciencedirect.com/science/article/pii/S0143622823001285"><strong>novel home detection method</strong></a> that combines:</p>
+<ul>
+<li><strong>Active evening presence thresholds</strong>, and</li>
+<li><strong>UK residential building data</strong></li>
+</ul>
+<p>This hybrid approach yields more accurate home location detection compared to traditional methods that rely solely on evening activity.</p>
+<blockquote>
+<p>ℹ️ <strong>Note:</strong> The current version of MeowMotion <strong>does not generate</strong> this file.
+You can request the home location dataset from the <strong>UBDC Data Service</strong>:</p>
+<p>📧 <code>ubdc-dataservice@glasgow.ac.uk</code></p>
+</blockquote>
+<hr />
+<h4 id="required-columns-in-the-home-location-file">🗂️ Required Columns in the Home Location File<a class="headerlink" href="#required-columns-in-the-home-location-file" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uid</code></td>
+<td>Unique identifier for the user</td>
+</tr>
+<tr>
+<td><code>home_datazone</code> / <code>lsoa</code></td>
+<td>The data zone or LSOA where the user's home is located</td>
+</tr>
+<tr>
+<td><code>msoa</code> / <code>intzone_code</code></td>
+<td>MSOA or intermediate zone code</td>
+</tr>
+<tr>
+<td><code>msoa_name</code></td>
+<td>Name of the MSOA or intermediate zone</td>
+</tr>
+<tr>
+<td><code>council_code</code></td>
+<td>Unique code for the local authority or council area</td>
+</tr>
+<tr>
+<td><code>council_name</code></td>
+<td>Name of the local authority or council</td>
+</tr>
+<tr>
+<td><code>imd_quintile</code></td>
+<td>Index of Multiple Deprivation quintile (1 = most deprived, 5 = least)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>✅ Ensure that the <code>uid</code> column matches the user IDs in your GPS dataset for consistent joining.</p>
+</blockquote>
+<h4 id="sample-home-location-data">📋 Sample Home Location Data<a class="headerlink" href="#sample-home-location-data" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>uid</th>
+<th>home_datazone/lsoa</th>
+<th>msoa/intzone_code</th>
+<th>msoa/intzone_name</th>
+<th>council_code</th>
+<th>council_name</th>
+<th>imd_quintile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>001</td>
+<td>S01009758</td>
+<td>S02001842</td>
+<td>Darnley East</td>
+<td>S12000046</td>
+<td>Glasgow City</td>
+</tr>
+<tr>
+<td>1</td>
+<td>002</td>
+<td>S01009758</td>
+<td>S02001842</td>
+<td>Darnley East</td>
+<td>S12000046</td>
+<td>Glasgow City</td>
+</tr>
+<tr>
+<td>2</td>
+<td>003</td>
+<td>S01009758</td>
+<td>S02001842</td>
+<td>Darnley East</td>
+<td>S12000046</td>
+<td>Glasgow City</td>
+</tr>
+<tr>
+<td>3</td>
+<td>004</td>
+<td>S01009758</td>
+<td>S02001842</td>
+<td>Darnley East</td>
+<td>S12000046</td>
+<td>Glasgow City</td>
+</tr>
+<tr>
+<td>4</td>
+<td>005</td>
+<td>S01009759</td>
+<td>S02001842</td>
+<td>Darnley East</td>
+<td>S12000046</td>
+<td>Glasgow City</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-adult-population-file">🧮 3. Adult Population File<a class="headerlink" href="#3-adult-population-file" title="Permanent link">&para;</a></h3>
+<p>The <strong>Adult Population file</strong> contains information about the total number of adults in each <strong>Index of Multiple Deprivation (IMD) quintile</strong> within a given council area. The <strong>proportional share</strong> of each quintile can be calculated as a percentage of the total population within the corresponding city or region.</p>
+<p>This data is publicly available from:</p>
+<ul>
+<li><a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/adhocs/13773populationsbyindexofmultipledeprivationimddecileenglandandwales2020">Office of National Statistics (ONS)</a></li>
+<li><a href="https://www.nrscotland.gov.uk/publications/population-estimates-by-scottish-index-of-multiple-deprivation-simd/">National Records of Scotland (NRS)</a></li>
+</ul>
+<hr />
+<h4 id="required-columns-in-the-adult-population-file">🗂️ Required Columns in the Adult Population File<a class="headerlink" href="#required-columns-in-the-adult-population-file" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>council</code></td>
+<td>Name of the local authority or council area</td>
+</tr>
+<tr>
+<td><code>imd_quintile</code></td>
+<td>IMD quintile (1 = most deprived, 5 = least deprived)</td>
+</tr>
+<tr>
+<td><code>Total</code></td>
+<td>Total adult population in that IMD quintile within the council</td>
+</tr>
+<tr>
+<td><code>Percentage</code></td>
+<td>Proportion of total population this IMD quintile represents (e.g., 0.43 = 43%)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>✅ Ensure the <code>council</code> values match those in the Home Location file for accurate merging.</p>
+</blockquote>
+<hr />
+<h4 id="sample-adult-population-data">📋 Sample Adult Population Data<a class="headerlink" href="#sample-adult-population-data" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>council</th>
+<th>imd_quintile</th>
+<th>Total</th>
+<th>Percentage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Glasgow City</td>
+<td>1</td>
+<td>229597</td>
+<td>0.43</td>
+</tr>
+<tr>
+<td>Glasgow City</td>
+<td>2</td>
+<td>93635</td>
+<td>0.17</td>
+</tr>
+<tr>
+<td>Glasgow City</td>
+<td>3</td>
+<td>73942</td>
+<td>0.14</td>
+</tr>
+<tr>
+<td>Glasgow City</td>
+<td>4</td>
+<td>67347</td>
+<td>0.13</td>
+</tr>
+<tr>
+<td>Glasgow City</td>
+<td>5</td>
+<td>70641</td>
+<td>0.13</td>
+</tr>
+</tbody>
+</table>
+<h2 id="quick-start-travel-mode-detection">🚦 Quick Start: Travel Mode Detection<a class="headerlink" href="#quick-start-travel-mode-detection" title="Permanent link">&para;</a></h2>
+<p>MeowMotion supports <strong>machine learning–based travel mode detection</strong> using features derived from GPS traces, public transport infrastructure, and movement patterns.</p>
+<hr />
+<h3 id="step-1-prepare-the-trip-data">🧱 Step 1: Prepare the Trip Data<a class="headerlink" href="#step-1-prepare-the-trip-data" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">meowmotion.data_formatter</span><span class="w"> </span><span class="kn">import</span> <span class="n">processTripData</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s2">: Reading raw data&quot;</span><span class="p">)</span>
+<span class="n">raw_df</span> <span class="o">=</span> <span class="n">readData</span><span class="p">()</span> <span class="c1"># This is the raw GPS data. Read it the way you are most comfortable with</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s2">: Reading Trip Point Data&quot;</span><span class="p">)</span>
+<span class="n">tp_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">trip_point_data_file</span><span class="p">)</span> <span class="c1"># Trip points data generated by &#39;generateOD() above.&#39;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s2">: Reading NA-flow Data&quot;</span><span class="p">)</span>
+<span class="n">naf_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">na_flow_data_file</span><span class="p">)</span> <span class="c1"># na_flows data generated by &#39;generateOD() above.&#39;</span>
+
+<span class="c1"># Format the data for modeling</span>
+<span class="n">trip_df</span> <span class="o">=</span> <span class="n">processTripData</span><span class="p">(</span><span class="n">trip_point_df</span><span class="o">=</span><span class="n">tp_df</span><span class="p">,</span> <span class="n">na_flow_df</span><span class="o">=</span><span class="n">naf_df</span><span class="p">,</span> <span class="n">raw_df</span><span class="o">=</span><span class="n">raw_df</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="step-2-feature-engineering">🧠 Step 2: Feature Engineering<a class="headerlink" href="#step-2-feature-engineering" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">meowmotion.data_formatter</span><span class="w"> </span><span class="kn">import</span> <span class="n">featureEngineering</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gpd</span>
+
+<span class="c1"># Read shape files</span>
+<span class="n">bus_stops</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s1">&#39;path/to/bus_stops/shape_file.shp&#39;</span><span class="p">)</span>
+<span class="n">train_stops</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s1">&#39;path/to/train_stations/shape_file.shp&#39;</span><span class="p">)</span>
+<span class="n">metro_stops</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s1">&#39;path/to/metro_stations/shape_file.shp&#39;</span><span class="p">)</span>
+<span class="n">green_space_df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s1">&#39;path/to/green_spaces/shape_file.shp&#39;</span><span class="p">)</span>
+
+<span class="n">shape_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">bus_stops</span><span class="p">,</span> <span class="n">train_stops</span><span class="p">,</span> <span class="n">metro_stops</span><span class="p">,</span> <span class="n">green_space_df</span><span class="p">]</span> <span class="c1"># Create list of shapefiles. Keep it in the same order. It will be passed as a parameter to featureEngineering</span>
+
+<span class="c1"># Enrich trip data with contextual features</span>
+<span class="n">trip_df</span> <span class="o">=</span> <span class="n">featureEngineering</span><span class="p">(</span>
+    <span class="n">trip_df</span><span class="o">=</span><span class="n">trip_df</span><span class="p">,</span> <span class="n">shape_files</span><span class="o">=</span><span class="n">shape_files</span><span class="p">,</span> <span class="n">cpu_cores</span><span class="o">=</span><span class="n">cpu_cores</span>
+<span class="p">)</span>
+
+<span class="c1"># Save enriched data</span>
+<span class="n">saveFile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">/tmd&quot;</span><span class="p">,</span> <span class="s2">&quot;processed_trip_points_data.csv&quot;</span><span class="p">,</span> <span class="n">trip_df</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="step-3-generate-trip-statistics">📊 Step 3: Generate Trip Statistics<a class="headerlink" href="#step-3-generate-trip-statistics" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">meowmotion.data_formatter</span><span class="w"> </span><span class="kn">import</span> <span class="n">generateTrajStats</span>
+
+<span class="c1"># Extract movement stats for each trip</span>
+<span class="n">trip_stats_df</span> <span class="o">=</span> <span class="n">generateTrajStats</span><span class="p">(</span><span class="n">trip_df</span><span class="p">)</span>
+
+<span class="c1"># Save the results</span>
+<span class="n">saveFile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">/tmd&quot;</span><span class="p">,</span> <span class="s2">&quot;trip_stats_data.csv&quot;</span><span class="p">,</span> <span class="n">trip_stats_df</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="step-4-predict-travel-mode">🤖 Step 4: Predict Travel Mode<a class="headerlink" href="#step-4-predict-travel-mode" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">meowmotion.model_tmd</span><span class="w"> </span><span class="kn">import</span> <span class="n">modePredict</span>
+
+<span class="n">op_df</span><span class="p">,</span> <span class="n">agg_op_df</span> <span class="o">=</span> <span class="n">modePredict</span><span class="p">(</span>
+    <span class="n">processed_non_agg_data</span><span class="o">=</span><span class="n">processed_non_agg_data</span><span class="p">,</span>       <span class="c1"># processed_data dataFrame</span>
+    <span class="n">stats_agg_data</span><span class="o">=</span><span class="n">stats_agg_data</span><span class="p">,</span>                       <span class="c1"># stats_data dataFrame</span>
+    <span class="n">artifacts_dir</span><span class="o">=</span><span class="s2">&quot;path/to/artifacts&quot;</span><span class="p">,</span> <span class="c1"># Create a folder artifacts and keep model and label encoder in it.</span>
+    <span class="n">model_file_name</span><span class="o">=</span><span class="s2">&quot;model.pkl&quot;</span><span class="p">,</span>
+    <span class="n">le_file_name</span><span class="o">=</span><span class="s2">&quot;label_encoder.joblib&quot;</span><span class="p">,</span>
+    <span class="n">shape_file</span><span class="o">=</span><span class="s2">&quot;path/to/shape_file.shp&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;path/to/output_dir&quot;</span>
+<span class="p">)</span>
+</code></pre></div>
+<blockquote>
+<p>⚠️ <strong>Note:</strong> The <code>model.pkl</code> and <code>label_encoder.joblib</code> files are not included in this repository.
+Please request them from the UBDC Data Service:
+📧 <code>ubdc-dataservice@glasgow.ac.uk</code></p>
+</blockquote>
+<hr />
+<h3 id="output-travel-mode-detection-results">📋 Output: Travel Mode Detection Results<a class="headerlink" href="#output-travel-mode-detection-results" title="Permanent link">&para;</a></h3>
+<p>After running the Travel Mode Detection pipeline, two types of outputs are generated:</p>
+<hr />
+<h4 id="aggregated-output-travel-mode-matrix">🗺️ Aggregated Output — Travel Mode Matrix<a class="headerlink" href="#aggregated-output-travel-mode-matrix" title="Permanent link">&para;</a></h4>
+<p>Each row represents a unique origin-destination (OD) pair with counts of trips detected by travel mode.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>origin_geo_code</code></td>
+<td>Geographic code of the trip origin area</td>
+</tr>
+<tr>
+<td><code>destination_geo_code</code></td>
+<td>Geographic code of the trip destination area</td>
+</tr>
+<tr>
+<td><code>bicycle</code></td>
+<td>Number of trips detected as Bicycle trips</td>
+</tr>
+<tr>
+<td><code>bus</code></td>
+<td>Number of trips detected as Bus trips</td>
+</tr>
+<tr>
+<td><code>car</code></td>
+<td>Number of trips detected as Car trips</td>
+</tr>
+<tr>
+<td><code>train</code></td>
+<td>Number of trips detected as Train trips</td>
+</tr>
+<tr>
+<td><code>walk</code></td>
+<td>Number of trips detected as Walk trips</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>🚲 🚍 🚗 🚆 🚶 Aggregated results help analyze transport mode distribution between OD pairs across the study area.</p>
+</blockquote>
+<hr />
+<h4 id="non-aggregated-output-detected-travel-mode-for-each-trip">🧭 Non-Aggregated Output — Detected Travel Mode for Each Trip<a class="headerlink" href="#non-aggregated-output-detected-travel-mode-for-each-trip" title="Permanent link">&para;</a></h4>
+<p>This file contains detailed trip-level detection results for each GPS trajectory point associated with a trip.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>trip_id</code></td>
+<td>Unique identifier for the trip</td>
+</tr>
+<tr>
+<td><code>origin_geo_code</code></td>
+<td>Geographic code of the trip's origin</td>
+</tr>
+<tr>
+<td><code>destination_geo_code</code></td>
+<td>Geographic code of the trip's destination</td>
+</tr>
+<tr>
+<td><code>tp_lat</code></td>
+<td>Latitude of the trajectory point</td>
+</tr>
+<tr>
+<td><code>tp_lng</code></td>
+<td>Longitude of the trajectory point</td>
+</tr>
+<tr>
+<td><code>datetime</code></td>
+<td>Timestamp of the trajectory point</td>
+</tr>
+<tr>
+<td><code>travel_mode</code></td>
+<td>Predicted transport mode at the trajectory point</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>🧠 This detailed file allows fine-grained analysis of mode-switching behavior within trips or validation against high-resolution GPS tracks.</p>
+</blockquote>
+<h3 id="notes-on-required-input-files_1">📌 Notes on Required Input Files<a class="headerlink" href="#notes-on-required-input-files_1" title="Permanent link">&para;</a></h3>
+<p>The <strong>Travel Mode Detection</strong> pipeline uses multiple shapefiles to extract spatial characteristics of the trips.</p>
+<p>Each shapefile must:</p>
+<ul>
+<li>Use <strong>EPSG:4326 (WGS84)</strong> coordinate system.</li>
+<li>Contain appropriate geometry (<code>POINT</code> buffers or <code>POLYGON</code> areas) for spatial analysis.</li>
+</ul>
+<hr />
+<h4 id="bus-stops-shapefile">🚌 Bus Stops Shapefile<a class="headerlink" href="#bus-stops-shapefile" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>stop_id</th>
+<th>lng</th>
+<th>lat</th>
+<th>geometry</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bs_001</td>
+<td>-4.259865</td>
+<td>55.857296</td>
+<td>POLYGON ((-4.25939 55.85730, ...))</td>
+</tr>
+<tr>
+<td>bs_002</td>
+<td>-4.258346</td>
+<td>55.861953</td>
+<td>POLYGON ((-4.25787 55.86196, ...))</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>lng</code> and <code>lat</code> are the <strong>exact coordinates</strong> of each bus stop.</li>
+<li><code>geometry</code> defines a <strong>30-meter buffer polygon</strong> around the stop (configurable as needed).</li>
+</ul>
+<hr />
+<h4 id="metro-stations-shapefile">🚇 Metro Stations Shapefile<a class="headerlink" href="#metro-stations-shapefile" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>stop_id</th>
+<th>lng</th>
+<th>lat</th>
+<th>geometry</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ms_001</td>
+<td>-4.258553</td>
+<td>55.852036</td>
+<td>POLYGON ((-4.25807 55.85204, ...))</td>
+</tr>
+<tr>
+<td>ms_002</td>
+<td>-4.294267</td>
+<td>55.852112</td>
+<td>POLYGON ((-4.29379 55.85212, ...))</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Similar to bus stops, metro stations use point coordinates and buffered areas.</li>
+</ul>
+<hr />
+<h4 id="train-stations-shapefile">🚆 Train Stations Shapefile<a class="headerlink" href="#train-stations-shapefile" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>stop_id</th>
+<th>lng</th>
+<th>lat</th>
+<th>geometry</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ts_001</td>
+<td>-4.269514</td>
+<td>55.864641</td>
+<td>POLYGON ((-4.26903 55.86465, ...))</td>
+</tr>
+<tr>
+<td>ts_002</td>
+<td>-4.283278</td>
+<td>55.861438</td>
+<td>POLYGON ((-4.28280 55.86145, ...))</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="green-spaces-shapefile">🌳 Green Spaces Shapefile<a class="headerlink" href="#green-spaces-shapefile" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>gsp_id</th>
+<th>geometry</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gs_001</td>
+<td>POLYGON Z ((219216.711 666579.172 ...))</td>
+</tr>
+<tr>
+<td>gs_002</td>
+<td>POLYGON Z ((219243.240 666760.324 ...))</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Green space shapefiles <strong>do not</strong> have <code>lng</code> or <code>lat</code> columns.</li>
+<li>They consist only of <strong>polygon geometries</strong> representing parks, fields, or natural areas.</li>
+<li>Make sure polygons are valid and CRS is correctly set.</li>
+</ul>
+<hr />
+<blockquote>
+<p>📌 These shapefiles help the model understand whether trips interact with transport networks (stops, stations) or land-use features (parks, green spaces).</p>
+</blockquote>
+<h2 id="youre-done">✅ You're Done!<a class="headerlink" href="#youre-done" title="Permanent link">&para;</a></h2>
+<p>🎉 Congratulations! You've successfully completed the <strong>MeowMotion</strong> core pipelines.</p>
+<p>By now, you have:</p>
+<ul>
+<li>✅ Cleaned and filtered raw GPS data.</li>
+<li>✅ Detected user <strong>stop nodes</strong> based on spatial and temporal patterns.</li>
+<li>✅ Generated <strong>trip-level flows</strong> between detected stop nodes.</li>
+<li>✅ Scaled trips to population levels by producing multiple <strong>OD matrices</strong>.</li>
+<li>✅ Produced additional datasets such as <strong>trip points</strong>, <strong>stay points</strong>, and <strong>user activity statistics</strong>.</li>
+<li>✅ Performed <strong>feature engineering</strong> by integrating public transport stops and green space data.</li>
+<li>✅ Built <strong>movement statistics</strong> and processed trips for modeling.</li>
+<li>✅ Predicted <strong>travel modes</strong> for each trip using pre-trained ML models.</li>
+</ul>
+<p>Your outputs are ready for:</p>
+<ul>
+<li>📊 OD-based mobility analysis</li>
+<li>🛣️ Transport planning and policy simulations</li>
+<li>🚦 Travel behavior studies</li>
+<li>🧠 Further machine learning or custom model training</li>
+</ul>
+<hr />
+<blockquote>
+<p>📚 For deeper details, tutorials, or API references, head over to the full <a href="https://urbanbigdatacentre.github.io/meowmotion/">MeowMotion Documentation</a>.</p>
+</blockquote>
+<p>🐾 <strong>Happy analyzing with MeowMotion!</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.expand", "navigation.sections", "navigation.top", "content.code.annotate", "content.tabs.link", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
