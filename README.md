@@ -6,8 +6,8 @@
 
 <p align="center">
   <a href="https://urbanbigdatacentre.github.io/meowmotion/">📖 Documentation</a> •
-  <a href="#installation">🛠 Installation</a> •
-  <a href="#quick-start">🚀 Quick Start</a>
+  <a href="https://urbanbigdatacentre.github.io/meowmotion/getting-started/installation/">🛠 Installation</a> •
+  <a href="https://urbanbigdatacentre.github.io/meowmotion/getting-started/quick-start/">🚀 Quick Start</a>
 </p>
 
 <p align="center">
